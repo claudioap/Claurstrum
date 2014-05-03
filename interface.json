@@ -1,0 +1,27 @@
+{
+  "menu": {
+    "name": [
+      "Introduction",
+      "Install",
+      "Configure"
+    ],
+    "items": [
+      [
+        "Begin",
+        "Introduction to the software",
+        "How to use"
+      ],
+      [
+        "First steps"
+      ],
+      [
+        "System info"
+      ]
+    ],
+    "interface": [
+        "introduction.py",
+        "install.py",
+        "setup.py"
+    ]
+  }
+}
