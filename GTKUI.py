@@ -57,21 +57,31 @@ class MainWindow(Gtk.Window):
         if row is not None:
             self.stack.set_visible_child_name(row.get_child().get_text())
 
-    def create_content_stack(self, menu):
-        """This function makes a stack filled with a Gtk.Notebook for every
-        main menu entry, and within them creates the sub-menus and interface
-        content. The menu variable, represents the whole menu tree from the
+    @staticmethod
+    def create_content_stack(menu):
+        """This function a GTK.Notebook within a GTK.Stack. It fetches the
+        known entries(menu, see below) from external python files, thus
+        building the program interface from their information and methods.
+        The menu variable, represents the whole menu tree from the
         JSON interface file. """
         stack = Gtk.Stack()
         categories = menu["name"]
         items = menu["items"]
-        for x in range(len(items)):
-            tabbed_content = Gtk.Notebook()
-            for y in range(len(items[x])):
-                # Insert content into the notebook stacks
-                test_button = Gtk.Button("I am a button!\nBut not for long!")
-                tabbed_content.append_page(test_button, Gtk.Label(items[x][y]))
-            tabbed_content.set_visible(True)
-            stack.add_named(tabbed_content, categories[x])
+        for x in range(len(items)):  # For every main entry
+            try:  # Try to import the interface module referenced in the menu
+                imported_ref = __import__(
+                    'gtk_{mod}'.format(mod=menu["interface"][x])
+                )
+                ui_class = imported_ref.InterfaceModule()
+            except ImportError:  # FIXME This should be more complete
+                print("There was an error locating one module file!")
+            else:
+                tabbed_content = Gtk.Notebook()
+                for y in range(len(items[x])):
+                # For every minor entry of the current main entry
+                    tabbed_content.append_page(
+                        ui_class.ui[y], Gtk.Label(items[x][y]))
+                tabbed_content.set_visible(True)
+                stack.add_named(tabbed_content, categories[x])
 
         return stack

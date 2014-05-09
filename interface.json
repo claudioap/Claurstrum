@@ -19,9 +19,9 @@
       ]
     ],
     "interface": [
-        "introduction.py",
-        "install.py",
-        "setup.py"
+        "introduction",
+        "install",
+        "setup"
     ]
   }
 }
