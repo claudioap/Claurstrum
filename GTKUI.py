@@ -1,5 +1,5 @@
 #!/bin/python3
-from gi.repository import Gtk
+from gi.repository import Gtk, Gio
 import json
 
 
@@ -13,8 +13,9 @@ class MainWindow(Gtk.Window):
         header_bar = Gtk.HeaderBar()
         header_bar.props.show_close_button = True
         header_bar.props.title = "Claurstrum"
+        header_bar.set_subtitle("The universal system setup tool")
         self.set_titlebar(header_bar)
-        
+
         # Tries to load the interface data from a JSON file,
         #  if fails shows an error
         try:
@@ -27,6 +28,21 @@ class MainWindow(Gtk.Window):
                 "There was an error loading a configuration file.")
             self.add(error)
         else:
+            left_header_button_box = Gtk.Box()
+            button = Gtk.Button()
+            icon = Gio.ThemedIcon(name="document-open-symbolic")
+            icon = Gtk.Image.new_from_gicon(icon, Gtk.IconSize.BUTTON)
+            button.add(icon)
+            left_header_button_box.add(button)
+            button = Gtk.Button("Reset")
+            left_header_button_box.add(button)
+            header_bar.pack_start(left_header_button_box)
+
+            self.language_button = Gtk.Button("Language")
+            self.language_button.connect('clicked', self.show_language_popover)
+            header_bar.pack_end(self.language_button)
+            Gtk.StyleContext.add_class(left_header_button_box.get_style_context(), "linked")
+
             # Creates a two panel view, sidebar and content
             container = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
             self.add(container)
@@ -50,6 +66,51 @@ class MainWindow(Gtk.Window):
             side_navigation_list.add(label)
         side_navigation_list.connect("row-selected", self.side_navigation_switch)
         return side_navigation_list
+
+    @staticmethod
+    def create_popover(element, content, title, subtitle, change):
+        #Creates the popover for a given element with given content
+        popover = Gtk.Popover.new(element)
+        popover.set_relative_to(element)
+        popover.set_modal(True)
+        popover.set_position(Gtk.PositionType.BOTTOM)
+
+        header_bar = Gtk.HeaderBar()
+        if change:
+            btn_r = Gtk.Button('Change')
+            btn_r.set_can_focus(False)
+            btn_r.get_style_context().add_class(Gtk.STYLE_CLASS_SUGGESTED_ACTION)
+            header_bar.pack_end(btn_r)
+        header_bar.set_title(title)
+        if subtitle is not None:
+            header_bar.set_subtitle(subtitle)
+
+        content.set_hexpand(True)
+        content.set_vexpand(True)
+        content.set_halign(Gtk.Align.FILL)
+        content.set_valign(Gtk.Align.FILL)
+
+        grid = Gtk.Grid()
+        grid.attach(header_bar, 0, 0, 1, 1)
+        grid.attach(content, 0, 1, 1, 1)
+        grid.set_border_width(15)
+        popover.add(grid)
+        grid.show_all()
+        return popover
+
+    def show_language_popover(self, *_):
+        #Connects the language button to a popover
+        content = Gtk.Box()
+        content.set_size_request(600, 200)
+        listbox = Gtk.ListBox()
+        content.pack_start(listbox, True, True, 0)
+        popover = self.create_popover(
+            self.language_button, content,
+            "Pick your language:",
+            "Escolha a linguagem - Elige tu idioma - Choisissez votre langue - Wählen Sie Ihre Sprache",
+            True
+        )
+        popover.show_all()
     
     def side_navigation_switch(self, listbox, row):
         # Whenever the current selected menu entry changes, 
