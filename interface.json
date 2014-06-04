@@ -1,27 +1,56 @@
 {
-  "menu": {
-    "name": [
-      "Introduction",
-      "Install",
-      "Configure"
-    ],
-    "items": [
-      [
-        "Begin",
-        "Introduction to the software",
-        "How to use"
-      ],
-      [
-        "First steps"
-      ],
-      [
-        "System info"
-      ]
-    ],
-    "interface": [
-        "introduction",
-        "install",
-        "setup"
-    ]
-  }
+   "menu":[
+      {
+         "interface":[
+            "en_introduction",
+            "en_install",
+            "en_setup"
+         ],
+         "items":[
+            [
+               "Begin",
+               "Introduction to the software",
+               "How to use"
+            ],
+            [
+               "First steps"
+            ],
+            [
+               "System info"
+            ]
+         ],
+         "language":"English",
+         "name":[
+            "Introduction",
+            "Install",
+            "Configure"
+         ]
+      },
+      {
+         "interface":[
+            "pt_introducao",
+            "pt_instalar",
+            "pt_configuracao"
+         ],
+         "items":[
+            [
+               "Início",
+               "Introdução ao software",
+               "Como utilizar"
+            ],
+            [
+               "Primeiros passos"
+            ],
+            [
+               "Informação do sistema"
+            ]
+         ],
+         "language":"Português",
+         "name":[
+            "Introdução",
+            "Instalar",
+            "Configurar"
+         ]
+      }
+   ]
 }
