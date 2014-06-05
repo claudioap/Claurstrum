@@ -206,10 +206,11 @@ class MainWindow(Gtk.Window):
                 self.language = self.new_language["Index"]
                 self.new_language = None
 
-                self.stack.destroy()
-                self.interface.destroy()
+                self.interface.remove(self.stack)
+                self.remove(self.interface)
                 self.interface = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
                 self.build_interface()
+                self.interface.show_all()
                 self.add(self.interface)
             dialog.destroy()
 
