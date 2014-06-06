@@ -17,7 +17,9 @@ class InterfaceModule(Gtk.Box):
     @staticmethod
     def ui_begin_tab():
         box = Gtk.Box()
-        label = Gtk.Label("O programa dá-lhe as boas vindas!\n\tNavegue utilizando os separadores no topo!")
+        label = Gtk.Label(
+            "O programa dá-lhe as boas vindas!\n\tNavegue utilizando os separadores no topo!"
+        )
         box.pack_start(label, True, True, 0)
         return box
 

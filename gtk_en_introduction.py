@@ -17,7 +17,9 @@ class InterfaceModule(Gtk.Box):
     @staticmethod
     def ui_begin_tab():
         box = Gtk.Box()
-        label = Gtk.Label("This program welcomes you!\n\tNavigate using the tabs on the top")
+        label = Gtk.Label(
+            "This program welcomes you!\n\tNavigate using the tabs on the top"
+        )
         box.pack_start(label, True, True, 0)
         return box
 

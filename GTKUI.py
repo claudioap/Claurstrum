@@ -39,12 +39,16 @@ class MainWindow(Gtk.Window):
             left_header_button_box.add(button)
             button = Gtk.Button("Reset")
             left_header_button_box.add(button)
-            Gtk.StyleContext.add_class(left_header_button_box.get_style_context(), "linked")
+            Gtk.StyleContext.add_class(
+                left_header_button_box.get_style_context(), "linked"
+            )
             header_bar.pack_start(left_header_button_box)
             #Language button.
             # Pops a language selection menu when clicked
             self.language_button = Gtk.Button("Language")
-            self.language_button.connect('clicked', self.show_language_popover)
+            self.language_button.connect(
+                'clicked', self.show_language_popover
+            )
             header_bar.pack_end(self.language_button)
             #Inits class variables which will be the main interface widgets
             self.interface = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
@@ -61,7 +65,9 @@ class MainWindow(Gtk.Window):
             , False, False, 0
         )
 
-        self.stack = self.create_content_stack(self.interface_data["menu"][self.language])
+        self.stack = self.create_content_stack(
+            self.interface_data["menu"][self.language]
+        )
         self.interface.pack_start(self.stack, True, True, 0)
 
     def create_side_navigation(self, menu):
@@ -75,7 +81,9 @@ class MainWindow(Gtk.Window):
             label = Gtk.Label(menu[x])
             label.props.xalign = 0.0
             side_navigation_list.add(label)
-        side_navigation_list.connect("row-selected", self.side_navigation_changed)
+        side_navigation_list.connect(
+            "row-selected", self.side_navigation_changed
+        )
         return side_navigation_list
 
     @staticmethod
@@ -120,7 +128,9 @@ class MainWindow(Gtk.Window):
         if change:
             change_button = Gtk.Button('Change')
             change_button.set_can_focus(False)
-            change_button.get_style_context().add_class(Gtk.STYLE_CLASS_SUGGESTED_ACTION)
+            change_button.get_style_context().add_class(
+                Gtk.STYLE_CLASS_SUGGESTED_ACTION
+            )
             header_bar.pack_end(change_button)
         header_bar.set_title(title)
         if subtitle is not None:
@@ -142,12 +152,14 @@ class MainWindow(Gtk.Window):
         return popover
 
     def show_language_popover(self, *_):
-        #Builds a language selection GTK.Popover on top of the language button.
+        #Builds a language selection GTK.Popover on top of the language button
         content = Gtk.Box()
         content.set_size_request(600, 200)
         language_list = Gtk.ListBox()
         for language in range(len(self.interface_data['menu'])):
-            label = Gtk.Label(self.interface_data['menu'][language]['language'])
+            label = Gtk.Label(
+                self.interface_data['menu'][language]['language']
+            )
             language_list.add(label)
         language_list.connect("row-selected", self.new_language_value_change)
         content.pack_start(language_list, True, True, 0)
@@ -177,7 +189,7 @@ class MainWindow(Gtk.Window):
 
     def language_change_confirmation(self, *_):
         """
-        Shows the confirmation dialog. If succeded destroys the widgets,
+        Shows the confirmation dialog. If succeeded destroys the widgets,
         then recreates new ones in the new language.
         """
         if self.new_language["Index"] != self.language:
@@ -208,7 +220,9 @@ class MainWindow(Gtk.Window):
 
                 self.interface.remove(self.stack)
                 self.remove(self.interface)
-                self.interface = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+                self.interface = Gtk.Box(
+                    orientation=Gtk.Orientation.HORIZONTAL
+                )
                 self.build_interface()
                 self.interface.show_all()
                 self.add(self.interface)
