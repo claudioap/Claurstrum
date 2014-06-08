@@ -89,27 +89,41 @@ class MainWindow(Gtk.Window):
 
     @staticmethod
     def create_content_stack(menu):
-        """This function a GTK.Notebook within a GTK.Stack. It fetches the
-        known entries(menu, see below) from external python files, thus
-        building the program interface from their information and methods.
-        The menu variable, represents the whole menu tree from the
-        JSON interface file. """
+        """
+        :param menu: Represents the whole menu tree from the
+        JSON interface file.
+        This makes GTK.Notebook's within a GTK.Stack.
+        It fetches the known entries(found in 'menu') from external python
+        scripts, thus building the program interface from their information
+        and methods.
+        :return: Stack with user interfaces
+         """
         stack = Gtk.Stack()
         categories = menu["name"]
         items = menu["items"]
-        for x in range(len(items)):  # For every main entry
-            try:  # Try to import the interface module referenced in the menu
+        for x in range(len(items)):  # For every category
+            try:  # Try to import the interface module referenced in 'menu'
                 imported_ref = __import__(
                     'gtk_{mod}'.format(mod=menu["interface"][x])
                 )
+                """
+                There is an 'InterfaceModule class in every module.
+                Is is instantiated and assigned to ui_class.
+                There is a class variable "ui" at those modules, it is assigned
+                and pages are made in the Gtk.Notebook from its elements.
+                A reference to the Gtk.Notebook is also sent.
+                """
                 ui_class = imported_ref.InterfaceModule(x)
-            except ImportError:  # FIXME This should be more complete
-                print("There was an error locating one module file!")
+            except ImportError:
+                return Gtk.Label(
+                    "There was an error loading one module file!\n"
+                    "The program can not continue."
+                )
             else:
                 tabbed_content = Gtk.Notebook()
                 ui_class.notebook = tabbed_content
                 for y in range(len(items[x])):
-                # For every minor entry of the current main entry
+                # For every page of the current category
                     tabbed_content.append_page(
                         ui_class.ui[y], Gtk.Label(items[x][y]))
                 tabbed_content.set_visible(True)

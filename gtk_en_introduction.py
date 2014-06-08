@@ -5,6 +5,17 @@ from textwrap import dedent
 
 class InterfaceModule(Gtk.Box):
     def __init__(self, menu_entry):
+        """
+        :param menu_entry:  A reference to the Gtk.Notebook that holds the
+        content present in this module. Allows manipulation from within the
+        pages.
+        Its known that there is an InterfaceModule class, which is
+        instantiated, then it looks for self.ui to find the module pages.
+        self.build_ui() is a method that creates an array of pages(Gtk.Box's)
+        and assigns the result to self.ui.
+        The remaining methods, are the code in charge of building the pages,
+        creating interactivity, etc...
+        """
         self.ui = self.build_ui()
         self.menu_entry = menu_entry
         self.notebook = None
