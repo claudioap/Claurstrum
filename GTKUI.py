@@ -8,7 +8,8 @@ class MainWindow(Gtk.Window):
     def __init__(self):
         # Sets the window properties, and attaches the header bar.
         Gtk.Window.__init__(self, title="Claurstrum")
-        self.set_default_size(1024, 600)
+        self.set_size_request(1024, 600)
+        self.set_resizable(False)
 
         header_bar = Gtk.HeaderBar()
         header_bar.props.show_close_button = True
