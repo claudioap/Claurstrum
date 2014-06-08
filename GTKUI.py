@@ -102,11 +102,12 @@ class MainWindow(Gtk.Window):
                 imported_ref = __import__(
                     'gtk_{mod}'.format(mod=menu["interface"][x])
                 )
-                ui_class = imported_ref.InterfaceModule()
+                ui_class = imported_ref.InterfaceModule(x)
             except ImportError:  # FIXME This should be more complete
                 print("There was an error locating one module file!")
             else:
                 tabbed_content = Gtk.Notebook()
+                ui_class.notebook = tabbed_content
                 for y in range(len(items[x])):
                 # For every minor entry of the current main entry
                     tabbed_content.append_page(

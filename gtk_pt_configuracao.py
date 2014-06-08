@@ -4,7 +4,7 @@ from gi.repository import Gtk
 
 class InterfaceModule(Gtk.Box):
 
-    def __init__(self):
+    def __init__(self, menu_entry):
         self.ui = self.build_ui()
 
     def build_ui(self):
