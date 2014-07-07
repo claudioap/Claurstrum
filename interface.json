@@ -4,7 +4,7 @@
          "interface":[
             "en_introduction",
             "en_install",
-            "en_setup"
+            "en_webserversetup"
          ],
          "items":[
             [
@@ -16,14 +16,17 @@
                "First steps"
             ],
             [
-               "System info"
+               "Webserver info",
+               "Standard setup",
+               "Secure Socket Layer",
+               "Virtual Hosts"
             ]
          ],
          "language":"English",
          "name":[
             "Introduction",
             "Install",
-            "Configure"
+            "Webserver Setup"
          ]
       },
       {
