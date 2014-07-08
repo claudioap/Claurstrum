@@ -10,6 +10,7 @@ class MainWindow(Gtk.Window):
         Gtk.Window.__init__(self, title="Claurstrum")
         self.set_size_request(1024, 600)
         self.set_resizable(False)
+        self.set_position(Gtk.WindowPosition.CENTER)
 
         header_bar = Gtk.HeaderBar()
         header_bar.props.show_close_button = True
