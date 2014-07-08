@@ -4,7 +4,8 @@
          "interface":[
             "en_introduction",
             "en_install",
-            "en_webserversetup"
+            "en_webserver",
+            "en_sshserver"
          ],
          "items":[
             [
@@ -16,17 +17,22 @@
                "First steps"
             ],
             [
-               "Webserver info",
+               "Web Server info",
                "Standard setup",
                "Secure Socket Layer",
                "Virtual Hosts"
+            ],
+            [
+               "OpenSSH Server Info",
+               "Server Settings"
             ]
          ],
          "language":"English",
          "name":[
             "Introduction",
             "Install",
-            "Webserver Setup"
+            "Web Server Setup",
+            "OpenSSH Server Setup"
          ]
       },
       {
