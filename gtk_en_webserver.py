@@ -83,7 +83,180 @@ class InterfaceModule(Gtk.Box):
 
     @staticmethod
     def ui_standard_setup_tab():
-        box = Gtk.Box()
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        box.set_margin_bottom(0)
+        box.set_margin_top(10)
+
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+
+        label = Gtk.Label("Top level host:")
+        hbox.pack_start(label, False, True, 0)
+        switch = Gtk.Switch()
+        hbox.pack_start(switch, False, True, 0)
+        hbox.set_margin_left(20)
+        hbox.set_margin_right(20)
+        box.pack_start(hbox, False, True, 0)
+
+        separator = Gtk.Separator()
+        box.pack_start(separator, False, False, 0)
+
+        grid = Gtk.Grid()
+        grid.set_margin_left(20)
+        grid.set_margin_right(20)
+        grid.set_column_spacing(30)
+        grid.set_row_spacing(1)
+
+        #--------------- First Column ---------------------
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        hbox.set_halign(Gtk.Align.END)
+        label = Gtk.Label("Hostname:")
+        hbox.pack_start(label, True, False, 0)
+        entry = Gtk.Entry()
+        hbox.pack_start(entry, True, False, 0)
+        grid.attach(hbox, 0, 0, 1, 1)
+
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        hbox.set_halign(Gtk.Align.END)
+        label = Gtk.Label("IPV4:")
+        hbox.pack_start(label, True, False, 0)
+        entry = Gtk.Entry()
+        hbox.pack_start(entry, True, False, 0)
+        grid.attach(hbox, 0, 1, 1, 1)
+
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        hbox.set_halign(Gtk.Align.END)
+        label = Gtk.CheckButton(label="Enable IPV6")
+        hbox.pack_start(label, True, False, 0)
+        grid.attach(hbox, 0, 2, 1, 1)
+
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        hbox.set_halign(Gtk.Align.END)
+        label = Gtk.Label("IPV6:")
+        hbox.pack_start(label, True, False, 0)
+        entry = Gtk.Entry()
+        hbox.pack_start(entry, True, False, 0)
+        grid.attach(hbox, 0, 3, 1, 1)
+
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        hbox.set_halign(Gtk.Align.END)
+        label = Gtk.Label("Port:")
+        hbox.pack_start(label, True, False, 0)
+        entry = Gtk.Entry()
+        hbox.pack_start(entry, True, False, 0)
+        grid.attach(hbox, 0, 4, 1, 1)
+
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        hbox.set_halign(Gtk.Align.END)
+        label = Gtk.CheckButton(label="Enable reverse Proxy:")
+        label.set_margin_top(20)
+        hbox.pack_start(label, True, False, 0)
+        grid.attach(hbox, 0, 5, 1, 2)
+
+        #--------------- Second Column ---------------------
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        hbox.set_halign(Gtk.Align.END)
+        label = Gtk.Label("Path:")
+        hbox.pack_start(label, True, False, 0)
+        label = Gtk.Label("/srv/http/")
+        hbox.pack_start(label, True, False, 0)
+        file_chooser = Gtk.FileChooserButton()
+        hbox.pack_start(file_chooser, True, False, 0)
+        grid.attach(hbox, 1, 0, 1, 1)
+
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        hbox.set_halign(Gtk.Align.END)
+        label = Gtk.Label("Log folder:")
+        hbox.pack_start(label, True, False, 0)
+        label = Gtk.Label("/var/log/webserver/")
+        hbox.pack_start(label, True, False, 0)
+        file_chooser = Gtk.FileChooserButton()
+        hbox.pack_start(file_chooser, True, False, 0)
+        grid.attach(hbox, 1, 1, 1, 1)
+
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        hbox.set_halign(Gtk.Align.END)
+        label = Gtk.Label("Maximum connections:")
+        hbox.pack_start(label, True, False, 0)
+        spin_button = Gtk.SpinButton()
+        hbox.pack_start(spin_button, True, False, 0)
+        grid.attach(hbox, 1, 2, 1, 1)
+
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        hbox.set_halign(Gtk.Align.END)
+        label = Gtk.Label("Number of workers:")
+        hbox.pack_start(label, True, False, 0)
+        spin_button = Gtk.SpinButton()
+        hbox.pack_start(spin_button, True, False, 0)
+        grid.attach(hbox, 1, 3, 1, 1)
+
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        hbox.set_halign(Gtk.Align.END)
+        label = Gtk.Label("Keep alive time:")
+        hbox.pack_start(label, True, False, 0)
+        spin_button = Gtk.SpinButton()
+        hbox.pack_start(spin_button, True, False, 0)
+        grid.attach(hbox, 1, 4, 1, 1)
+
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        Gtk.StyleContext.add_class(hbox.get_style_context(), "linked")
+        hbox.set_halign(Gtk.Align.START)
+        ip = Gtk.Entry()
+        ip.set_width_chars(10)
+        hbox.pack_start(ip, False, False, 0)
+        port = Gtk.Entry()
+        port.set_width_chars(5)
+        port.set_max_width_chars(5)
+        hbox.pack_start(port, False, False, 0)
+        ipv = Gtk.ComboBoxText()
+        ipv.append("ipv4", "IPV4")
+        ipv.append("ipv6", "IPV6")
+        hbox.pack_end(ipv, False, False, 0)
+
+        grid.attach(hbox, 1, 6, 1, 1)
+
+        #--------------- Third Column ---------------------
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        hbox.set_halign(Gtk.Align.START)
+        label = Gtk.CheckButton(label="Enable SSL")
+        hbox.pack_start(label, True, False, 0)
+        grid.attach(hbox, 2, 0, 1, 1)
+
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        hbox.set_halign(Gtk.Align.START)
+        label = Gtk.CheckButton(label="GZIP Compress")
+        hbox.pack_start(label, True, False, 0)
+        grid.attach(hbox, 2, 1, 1, 1)
+
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        hbox.set_halign(Gtk.Align.START)
+        label = Gtk.CheckButton(label="Enable PHP Support")
+        hbox.pack_start(label, True, False, 0)
+        grid.attach(hbox, 2, 2, 1, 1)
+
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        hbox.set_halign(Gtk.Align.START)
+        label = Gtk.CheckButton(label="PHP - Enable MariaDB")
+        hbox.pack_start(label, True, False, 0)
+        grid.attach(hbox, 2, 3, 1, 1)
+
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        hbox.set_halign(Gtk.Align.START)
+        label = Gtk.CheckButton(label="PHP - Enable SQLite")
+        hbox.pack_start(label, True, False, 0)
+        grid.attach(hbox, 2, 4, 1, 1)
+
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        hbox.set_halign(Gtk.Align.START)
+        label = Gtk.CheckButton(label="PHP - Install PHPMyAdmin")
+        hbox.pack_start(label, True, False, 0)
+        grid.attach(hbox, 2, 5, 1, 1)
+
+        box.pack_start(grid, True, True, 0)
+
+        button = Gtk.Button("Apply")
+        box.pack_end(button, False, False, 0)
+
+
         return box
 
     @staticmethod
