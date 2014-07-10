@@ -7,9 +7,7 @@ from gi.repository import Gtk, Gdk, GLib
 
 
 class InterfaceModule(Gtk.Box):
-
     def __init__(self, menu_entry):
-
         self.lbl_mem_usage = Gtk.Label("Memory Usage: N/A")
         self.lbl_cpu_usage = Gtk.Label("Processor Usage: N/A", xalign=1.0)
         self.lbl_nginx_result = Gtk.Label()
@@ -17,16 +15,19 @@ class InterfaceModule(Gtk.Box):
         self.restart_button = Gtk.Button("Restart")
         self.stop_button = Gtk.Button("Stop")
         self.status_button = Gtk.Button("Status")
-        self.ui = self.build_ui()
+        self.notebook = None
+        self.menu_entry = menu_entry
         self.encoded_pid = b''
         self.pid = None
         self.cpu = None
         self.mem = None
+        self.interface = {'info': {}, 'setup': {}, 'ssl': {}, 'vhosts': {}}
+        self.ui = self.build_ui()
 
     def build_ui(self):
         ui = [
             self.ui_info_tab(),
-            self.ui_standard_setup_tab(),
+            self.ui_setup_tab(),
             self.ui_ssl_tab(),
             self.ui_vhost_tab()
         ]
@@ -81,18 +82,16 @@ class InterfaceModule(Gtk.Box):
 
         return box
 
-    @staticmethod
-    def ui_standard_setup_tab():
+    def ui_setup_tab(self):
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         box.set_margin_bottom(0)
         box.set_margin_top(10)
-
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
 
         label = Gtk.Label("Top level host:")
         hbox.pack_start(label, False, True, 0)
-        switch = Gtk.Switch()
-        hbox.pack_start(switch, False, True, 0)
+        self.interface['setup']['host_switch'] = Gtk.Switch()
+        hbox.pack_start(self.interface['setup']['host_switch'], False, True, 0)
         hbox.set_margin_left(20)
         hbox.set_margin_right(20)
         box.pack_start(hbox, False, True, 0)
@@ -111,105 +110,113 @@ class InterfaceModule(Gtk.Box):
         hbox.set_halign(Gtk.Align.END)
         label = Gtk.Label("Hostname:")
         hbox.pack_start(label, True, False, 0)
-        entry = Gtk.Entry()
-        hbox.pack_start(entry, True, False, 0)
+        self.interface['setup']['host'] = Gtk.Entry()
+        hbox.pack_start(self.interface['setup']['host'], True, False, 0)
         grid.attach(hbox, 0, 0, 1, 1)
 
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         hbox.set_halign(Gtk.Align.END)
         label = Gtk.Label("IPV4:")
         hbox.pack_start(label, True, False, 0)
-        entry = Gtk.Entry()
-        hbox.pack_start(entry, True, False, 0)
+        self.interface['setup']['ipv4'] = Gtk.Entry()
+        hbox.pack_start(self.interface['setup']['ipv4'], True, False, 0)
         grid.attach(hbox, 0, 1, 1, 1)
 
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         hbox.set_halign(Gtk.Align.END)
-        label = Gtk.CheckButton(label="Enable IPV6")
-        hbox.pack_start(label, True, False, 0)
+        self.interface['setup']['ipv6_on'] = Gtk.CheckButton(
+            label="Enable IPV6")
+        hbox.pack_start(
+            self.interface['setup']['ipv6_on'], True, False, 0)
         grid.attach(hbox, 0, 2, 1, 1)
 
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         hbox.set_halign(Gtk.Align.END)
         label = Gtk.Label("IPV6:")
         hbox.pack_start(label, True, False, 0)
-        entry = Gtk.Entry()
-        hbox.pack_start(entry, True, False, 0)
+        self.interface['setup']['ipv6'] = Gtk.Entry()
+        hbox.pack_start(self.interface['setup']['ipv6'], True, False, 0)
         grid.attach(hbox, 0, 3, 1, 1)
 
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         hbox.set_halign(Gtk.Align.END)
         label = Gtk.Label("Port:")
         hbox.pack_start(label, True, False, 0)
-        entry = Gtk.Entry()
-        hbox.pack_start(entry, True, False, 0)
+        self.interface['setup']['port'] = Gtk.Entry()
+        hbox.pack_start(self.interface['setup']['port'], True, False, 0)
         grid.attach(hbox, 0, 4, 1, 1)
 
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         hbox.set_halign(Gtk.Align.END)
-        label = Gtk.CheckButton(label="Enable reverse Proxy:")
+        self.interface['setup']['reverse_proxy'] = Gtk.CheckButton(
+            label="Enable reverse Proxy:")
         label.set_margin_top(20)
-        hbox.pack_start(label, True, False, 0)
+        hbox.pack_start(
+            self.interface['setup']['reverse_proxy'], True, False, 0)
         grid.attach(hbox, 0, 5, 1, 2)
 
         #--------------- Second Column ---------------------
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         hbox.set_halign(Gtk.Align.END)
-        label = Gtk.Label("Path:")
-        hbox.pack_start(label, True, False, 0)
+        self.interface['setup']['document_root_label'] = Gtk.Label("Path:")
+        hbox.pack_start(
+            self.interface['setup']['document_root_label'], True, False, 0)
         label = Gtk.Label("/srv/http/")
         hbox.pack_start(label, True, False, 0)
-        file_chooser = Gtk.FileChooserButton()
-        hbox.pack_start(file_chooser, True, False, 0)
+        self.interface['setup']['document_root'] = Gtk.FileChooserButton()
+        hbox.pack_start(
+            self.interface['setup']['document_root'], True, False, 0)
         grid.attach(hbox, 1, 0, 1, 1)
 
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         hbox.set_halign(Gtk.Align.END)
         label = Gtk.Label("Log folder:")
         hbox.pack_start(label, True, False, 0)
-        label = Gtk.Label("/var/log/webserver/")
-        hbox.pack_start(label, True, False, 0)
-        file_chooser = Gtk.FileChooserButton()
-        hbox.pack_start(file_chooser, True, False, 0)
+        self.interface['setup']['log_folder_label'] = Gtk.Label("")
+        hbox.pack_start(self.interface['setup']['log_folder_label'], True, False, 0)
+        self.interface['setup']['log_folder'] = Gtk.FileChooserButton()
+        hbox.pack_start(self.interface['setup']['log_folder'], True, False, 0)
         grid.attach(hbox, 1, 1, 1, 1)
 
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         hbox.set_halign(Gtk.Align.END)
         label = Gtk.Label("Maximum connections:")
         hbox.pack_start(label, True, False, 0)
-        spin_button = Gtk.SpinButton()
-        hbox.pack_start(spin_button, True, False, 0)
+        self.interface['setup']['max_connections'] =\
+            Gtk.SpinButton.new_with_range(1, 9999, 1)
+        hbox.pack_start(self.interface['setup']['max_connections'], True, False, 0)
         grid.attach(hbox, 1, 2, 1, 1)
 
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         hbox.set_halign(Gtk.Align.END)
-        label = Gtk.Label("Number of workers:")
+        label =\
+            Gtk.Label("Number of workers:")
         hbox.pack_start(label, True, False, 0)
-        spin_button = Gtk.SpinButton()
-        hbox.pack_start(spin_button, True, False, 0)
+        self.interface['setup']['workers'] =\
+            Gtk.SpinButton.new_with_range(1, 1000, 1)
+        hbox.pack_start(self.interface['setup']['workers'], True, False, 0)
         grid.attach(hbox, 1, 3, 1, 1)
 
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         hbox.set_halign(Gtk.Align.END)
-        label = Gtk.Label("Keep alive time:")
+        label = Gtk.Label("Keep alive time (seconds):")
         hbox.pack_start(label, True, False, 0)
-        spin_button = Gtk.SpinButton()
+        spin_button = Gtk.SpinButton.new_with_range(1, 1000, 1)
         hbox.pack_start(spin_button, True, False, 0)
         grid.attach(hbox, 1, 4, 1, 1)
 
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         Gtk.StyleContext.add_class(hbox.get_style_context(), "linked")
         hbox.set_halign(Gtk.Align.START)
-        ip = Gtk.Entry()
-        ip.set_width_chars(10)
-        hbox.pack_start(ip, False, False, 0)
-        port = Gtk.Entry()
-        port.set_width_chars(5)
-        port.set_max_width_chars(5)
-        hbox.pack_start(port, False, False, 0)
+        self.interface['setup']['reverse_ip'] = Gtk.Entry()
+        hbox.pack_start(self.interface['setup']['reverse_ip'], False, False, 0)
+        self.interface['setup']['reverse_port'] = Gtk.Entry()
+        self.interface['setup']['reverse_port'].set_width_chars(5)
+        self.interface['setup']['reverse_port'].set_max_width_chars(5)
+        hbox.pack_start(self.interface['setup']['reverse_port'], False, False, 0)
         ipv = Gtk.ComboBoxText()
-        ipv.append("ipv4", "IPV4")
-        ipv.append("ipv6", "IPV6")
+        ipv.append("4", "IPV4")
+        ipv.append("6", "IPV6")
         hbox.pack_end(ipv, False, False, 0)
 
         grid.attach(hbox, 1, 6, 1, 1)
@@ -217,45 +224,51 @@ class InterfaceModule(Gtk.Box):
         #--------------- Third Column ---------------------
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         hbox.set_halign(Gtk.Align.START)
-        label = Gtk.CheckButton(label="Enable SSL")
-        hbox.pack_start(label, True, False, 0)
+        self.interface['setup']['ssl_on'] = Gtk.CheckButton(label="Enable SSL")
+        hbox.pack_start(self.interface['setup']['ssl_on'], True, False, 0)
         grid.attach(hbox, 2, 0, 1, 1)
 
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         hbox.set_halign(Gtk.Align.START)
-        label = Gtk.CheckButton(label="GZIP Compress")
-        hbox.pack_start(label, True, False, 0)
+        self.interface['setup']['gzip_on'] =\
+            Gtk.CheckButton(label="GZIP Compress")
+        hbox.pack_start(self.interface['setup']['gzip_on'], True, False, 0)
         grid.attach(hbox, 2, 1, 1, 1)
 
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         hbox.set_halign(Gtk.Align.START)
-        label = Gtk.CheckButton(label="Enable PHP Support")
-        hbox.pack_start(label, True, False, 0)
+        self.interface['setup']['php_on'] =\
+            Gtk.CheckButton(label="Enable PHP Support")
+        hbox.pack_start(self.interface['setup']['php_on'], True, False, 0)
         grid.attach(hbox, 2, 2, 1, 1)
 
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         hbox.set_halign(Gtk.Align.START)
-        label = Gtk.CheckButton(label="PHP - Enable MariaDB")
-        hbox.pack_start(label, True, False, 0)
+        self.interface['setup']['php_mdb_on'] =\
+            Gtk.CheckButton(label="PHP - Enable MariaDB")
+        hbox.pack_start(self.interface['setup']['php_mdb_on'], True, False, 0)
         grid.attach(hbox, 2, 3, 1, 1)
 
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         hbox.set_halign(Gtk.Align.START)
-        label = Gtk.CheckButton(label="PHP - Enable SQLite")
-        hbox.pack_start(label, True, False, 0)
+        self.interface['setup']['php_sqlite_on'] =\
+            Gtk.CheckButton(label="PHP - Enable SQLite")
+        hbox.pack_start(self.interface['setup']['php_sqlite_on'], True, False, 0)
         grid.attach(hbox, 2, 4, 1, 1)
 
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         hbox.set_halign(Gtk.Align.START)
-        label = Gtk.CheckButton(label="PHP - Install PHPMyAdmin")
-        hbox.pack_start(label, True, False, 0)
+        self.interface['setup']['php_myadmin_on'] =\
+            Gtk.CheckButton(label="PHP - Install PHPMyAdmin")
+        hbox.pack_start(
+            self.interface['setup']['php_myadmin_on'], True, False, 0)
         grid.attach(hbox, 2, 5, 1, 1)
 
         box.pack_start(grid, True, True, 0)
 
         button = Gtk.Button("Apply")
+        button.connect("clicked", self.apply_new_setup)
         box.pack_end(button, False, False, 0)
-
 
         return box
 
@@ -423,3 +436,6 @@ class InterfaceModule(Gtk.Box):
             dialog.run()
             self.refresh()
             dialog.destroy()
+
+    def apply_new_setup(self, *_):
+        pass
