@@ -90,7 +90,7 @@ class InterfaceModule(Gtk.Box):
 
         label = Gtk.Label("Top level host:")
         hbox.pack_start(label, False, True, 0)
-        self.interface['setup']['host_switch'] = Gtk.Switch()
+        self.interface['setup']['host_switch'] = Gtk.Switch(active=True)
         self.interface['setup']['host_switch'].connect(
             "notify::active", self.enable_host)
         hbox.pack_start(self.interface['setup']['host_switch'], False, True, 0)
@@ -128,6 +128,8 @@ class InterfaceModule(Gtk.Box):
         hbox.set_halign(Gtk.Align.END)
         self.interface['setup']['ipv6_on'] = Gtk.CheckButton(
             label="Enable IPV6")
+        self.interface['setup']['ipv6_on'].connect(
+            "notify::active", self.activate_ipv6)
         hbox.pack_start(
             self.interface['setup']['ipv6_on'], True, False, 0)
         grid.attach(hbox, 0, 2, 1, 1)
@@ -136,7 +138,7 @@ class InterfaceModule(Gtk.Box):
         hbox.set_halign(Gtk.Align.END)
         label = Gtk.Label("IPV6:")
         hbox.pack_start(label, True, False, 0)
-        self.interface['setup']['ipv6'] = Gtk.Entry()
+        self.interface['setup']['ipv6'] = Gtk.Entry(sensitive=False)
         hbox.pack_start(self.interface['setup']['ipv6'], True, False, 0)
         grid.attach(hbox, 0, 3, 1, 1)
 
@@ -153,6 +155,8 @@ class InterfaceModule(Gtk.Box):
         self.interface['setup']['reverse_proxy'] = Gtk.CheckButton(
             label="Enable reverse Proxy:")
         label.set_margin_top(20)
+        self.interface['setup']['reverse_proxy'].connect(
+            "notify::active", self.activate_reverse_proxy)
         hbox.pack_start(
             self.interface['setup']['reverse_proxy'], True, False, 0)
         grid.attach(hbox, 0, 5, 1, 2)
@@ -211,14 +215,15 @@ class InterfaceModule(Gtk.Box):
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         Gtk.StyleContext.add_class(hbox.get_style_context(), "linked")
         hbox.set_halign(Gtk.Align.START)
-        self.interface['setup']['reverse_ip'] = Gtk.Entry()
+        self.interface['setup']['reverse_ip'] = Gtk.Entry(sensitive=False)
         hbox.pack_start(self.interface['setup']['reverse_ip'], False, False, 0)
-        self.interface['setup']['reverse_port'] = Gtk.Entry()
+        self.interface['setup']['reverse_port'] = Gtk.Entry(sensitive=False)
         self.interface['setup']['reverse_port'].set_width_chars(5)
         self.interface['setup']['reverse_port'].set_max_width_chars(5)
         hbox.pack_start(
             self.interface['setup']['reverse_port'], False, False, 0)
-        self.interface['setup']['reverse_ipv'] = Gtk.ComboBoxText()
+        self.interface['setup']['reverse_ipv'] =\
+            Gtk.ComboBoxText(sensitive=False)
         self.interface['setup']['reverse_ipv'].append("4", "IPV4")
         self.interface['setup']['reverse_ipv'].append("6", "IPV6")
         hbox.pack_end(self.interface['setup']['reverse_ipv'], False, False, 0)
@@ -257,7 +262,8 @@ class InterfaceModule(Gtk.Box):
         hbox.set_halign(Gtk.Align.START)
         self.interface['setup']['php_sqlite_on'] =\
             Gtk.CheckButton(label="PHP - Enable SQLite")
-        hbox.pack_start(self.interface['setup']['php_sqlite_on'], True, False, 0)
+        hbox.pack_start(
+            self.interface['setup']['php_sqlite_on'], True, False, 0)
         grid.attach(hbox, 2, 4, 1, 1)
 
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
@@ -451,7 +457,6 @@ class InterfaceModule(Gtk.Box):
         self.interface['setup']['host'].set_sensitive(True)
         self.interface['setup']['ipv4'].set_sensitive(True)
         self.interface['setup']['ipv6_on'].set_sensitive(True)
-        self.interface['setup']['ipv6'].set_sensitive(True)
         self.interface['setup']['port'].set_sensitive(True)
         self.interface['setup']['reverse_proxy'].set_sensitive(True)
         self.interface['setup']['document_root_label'].set_sensitive(True)
@@ -461,15 +466,14 @@ class InterfaceModule(Gtk.Box):
         self.interface['setup']['max_connections'].set_sensitive(True)
         self.interface['setup']['workers'].set_sensitive(True)
         self.interface['setup']['keep_alive'].set_sensitive(True)
-        self.interface['setup']['reverse_ip'].set_sensitive(True)
-        self.interface['setup']['reverse_port'].set_sensitive(True)
-        self.interface['setup']['reverse_ipv'].set_sensitive(True)
         self.interface['setup']['ssl_on'].set_sensitive(True)
         self.interface['setup']['gzip_on'].set_sensitive(True)
         self.interface['setup']['php_on'].set_sensitive(True)
         self.interface['setup']['php_mdb_on'].set_sensitive(True)
         self.interface['setup']['php_sqlite_on'].set_sensitive(True)
         self.interface['setup']['php_myadmin_on'].set_sensitive(True)
+        self.activate_ipv6()
+        self.activate_reverse_proxy()
 
     def disable_setup_widgets(self):
         self.interface['setup']['host'].set_sensitive(False)
@@ -496,10 +500,34 @@ class InterfaceModule(Gtk.Box):
         self.interface['setup']['php_myadmin_on'].set_sensitive(False)
 
     def activate_ipv6(self, *_):
-        pass
+        activated = self.interface['setup']['ipv6_on'].get_active()
+        if activated:
+            self.interface['setup']['ipv6'].set_sensitive(True)
+        else:
+            self.interface['setup']['ipv6'].set_sensitive(False)
 
     def activate_reverse_proxy(self, *_):
-        pass
+        activated = self.interface['setup']['reverse_proxy'].get_active()
+        if activated:
+            self.interface['setup']['reverse_ip'].set_sensitive(True)
+            self.interface['setup']['reverse_port'].set_sensitive(True)
+            self.interface['setup']['reverse_ipv'].set_sensitive(True)
+            self.interface['setup']['document_root_label'].set_sensitive(False)
+            self.interface['setup']['document_root'].set_sensitive(False)
+            self.interface['setup']['php_on'].set_sensitive(False)
+            self.interface['setup']['php_mdb_on'].set_sensitive(False)
+            self.interface['setup']['php_sqlite_on'].set_sensitive(False)
+            self.interface['setup']['php_myadmin_on'].set_sensitive(False)
+        else:
+            self.interface['setup']['reverse_ip'].set_sensitive(False)
+            self.interface['setup']['reverse_port'].set_sensitive(False)
+            self.interface['setup']['reverse_ipv'].set_sensitive(False)
+            self.interface['setup']['document_root_label'].set_sensitive(True)
+            self.interface['setup']['document_root'].set_sensitive(True)
+            self.interface['setup']['php_on'].set_sensitive(True)
+            self.interface['setup']['php_mdb_on'].set_sensitive(True)
+            self.interface['setup']['php_sqlite_on'].set_sensitive(True)
+            self.interface['setup']['php_myadmin_on'].set_sensitive(True)
 
     def apply_new_setup(self, *_):
         pass
