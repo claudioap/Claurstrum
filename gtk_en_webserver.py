@@ -91,6 +91,8 @@ class InterfaceModule(Gtk.Box):
         label = Gtk.Label("Top level host:")
         hbox.pack_start(label, False, True, 0)
         self.interface['setup']['host_switch'] = Gtk.Switch()
+        self.interface['setup']['host_switch'].connect(
+            "notify::active", self.enable_host)
         hbox.pack_start(self.interface['setup']['host_switch'], False, True, 0)
         hbox.set_margin_left(20)
         hbox.set_margin_right(20)
@@ -102,7 +104,7 @@ class InterfaceModule(Gtk.Box):
         grid = Gtk.Grid()
         grid.set_margin_left(20)
         grid.set_margin_right(20)
-        grid.set_column_spacing(30)
+        grid.set_column_spacing(20)
         grid.set_row_spacing(1)
 
         #--------------- First Column ---------------------
@@ -158,11 +160,11 @@ class InterfaceModule(Gtk.Box):
         #--------------- Second Column ---------------------
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         hbox.set_halign(Gtk.Align.END)
-        self.interface['setup']['document_root_label'] = Gtk.Label("Path:")
+        label = Gtk.Label("Path:")
+        hbox.pack_start(label, True, False, 0)
+        self.interface['setup']['document_root_label'] = Gtk.Label("")
         hbox.pack_start(
             self.interface['setup']['document_root_label'], True, False, 0)
-        label = Gtk.Label("/srv/http/")
-        hbox.pack_start(label, True, False, 0)
         self.interface['setup']['document_root'] = Gtk.FileChooserButton()
         hbox.pack_start(
             self.interface['setup']['document_root'], True, False, 0)
@@ -201,8 +203,9 @@ class InterfaceModule(Gtk.Box):
         hbox.set_halign(Gtk.Align.END)
         label = Gtk.Label("Keep alive time (seconds):")
         hbox.pack_start(label, True, False, 0)
-        spin_button = Gtk.SpinButton.new_with_range(1, 1000, 1)
-        hbox.pack_start(spin_button, True, False, 0)
+        self.interface['setup']['keep_alive'] =\
+            Gtk.SpinButton.new_with_range(1, 1000, 1)
+        hbox.pack_start(self.interface['setup']['keep_alive'], True, False, 0)
         grid.attach(hbox, 1, 4, 1, 1)
 
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
@@ -213,11 +216,12 @@ class InterfaceModule(Gtk.Box):
         self.interface['setup']['reverse_port'] = Gtk.Entry()
         self.interface['setup']['reverse_port'].set_width_chars(5)
         self.interface['setup']['reverse_port'].set_max_width_chars(5)
-        hbox.pack_start(self.interface['setup']['reverse_port'], False, False, 0)
-        ipv = Gtk.ComboBoxText()
-        ipv.append("4", "IPV4")
-        ipv.append("6", "IPV6")
-        hbox.pack_end(ipv, False, False, 0)
+        hbox.pack_start(
+            self.interface['setup']['reverse_port'], False, False, 0)
+        self.interface['setup']['reverse_ipv'] = Gtk.ComboBoxText()
+        self.interface['setup']['reverse_ipv'].append("4", "IPV4")
+        self.interface['setup']['reverse_ipv'].append("6", "IPV6")
+        hbox.pack_end(self.interface['setup']['reverse_ipv'], False, False, 0)
 
         grid.attach(hbox, 1, 6, 1, 1)
 
@@ -436,6 +440,66 @@ class InterfaceModule(Gtk.Box):
             dialog.run()
             self.refresh()
             dialog.destroy()
+
+    def enable_host(self, widget, *_):
+        if widget.get_active():
+            self.enable_setup_widgets()
+        else:
+            self.disable_setup_widgets()
+
+    def enable_setup_widgets(self):
+        self.interface['setup']['host'].set_sensitive(True)
+        self.interface['setup']['ipv4'].set_sensitive(True)
+        self.interface['setup']['ipv6_on'].set_sensitive(True)
+        self.interface['setup']['ipv6'].set_sensitive(True)
+        self.interface['setup']['port'].set_sensitive(True)
+        self.interface['setup']['reverse_proxy'].set_sensitive(True)
+        self.interface['setup']['document_root_label'].set_sensitive(True)
+        self.interface['setup']['document_root'].set_sensitive(True)
+        self.interface['setup']['log_folder_label'].set_sensitive(True)
+        self.interface['setup']['log_folder'].set_sensitive(True)
+        self.interface['setup']['max_connections'].set_sensitive(True)
+        self.interface['setup']['workers'].set_sensitive(True)
+        self.interface['setup']['keep_alive'].set_sensitive(True)
+        self.interface['setup']['reverse_ip'].set_sensitive(True)
+        self.interface['setup']['reverse_port'].set_sensitive(True)
+        self.interface['setup']['reverse_ipv'].set_sensitive(True)
+        self.interface['setup']['ssl_on'].set_sensitive(True)
+        self.interface['setup']['gzip_on'].set_sensitive(True)
+        self.interface['setup']['php_on'].set_sensitive(True)
+        self.interface['setup']['php_mdb_on'].set_sensitive(True)
+        self.interface['setup']['php_sqlite_on'].set_sensitive(True)
+        self.interface['setup']['php_myadmin_on'].set_sensitive(True)
+
+    def disable_setup_widgets(self):
+        self.interface['setup']['host'].set_sensitive(False)
+        self.interface['setup']['ipv4'].set_sensitive(False)
+        self.interface['setup']['ipv6_on'].set_sensitive(False)
+        self.interface['setup']['ipv6'].set_sensitive(False)
+        self.interface['setup']['port'].set_sensitive(False)
+        self.interface['setup']['reverse_proxy'].set_sensitive(False)
+        self.interface['setup']['document_root_label'].set_sensitive(False)
+        self.interface['setup']['document_root'].set_sensitive(False)
+        self.interface['setup']['log_folder_label'].set_sensitive(False)
+        self.interface['setup']['log_folder'].set_sensitive(False)
+        self.interface['setup']['max_connections'].set_sensitive(False)
+        self.interface['setup']['workers'].set_sensitive(False)
+        self.interface['setup']['keep_alive'].set_sensitive(False)
+        self.interface['setup']['reverse_ip'].set_sensitive(False)
+        self.interface['setup']['reverse_port'].set_sensitive(False)
+        self.interface['setup']['reverse_ipv'].set_sensitive(False)
+        self.interface['setup']['ssl_on'].set_sensitive(False)
+        self.interface['setup']['gzip_on'].set_sensitive(False)
+        self.interface['setup']['php_on'].set_sensitive(False)
+        self.interface['setup']['php_mdb_on'].set_sensitive(False)
+        self.interface['setup']['php_sqlite_on'].set_sensitive(False)
+        self.interface['setup']['php_myadmin_on'].set_sensitive(False)
+
+    def activate_ipv6(self, *_):
+        pass
+
+    def activate_reverse_proxy(self, *_):
+        pass
 
     def apply_new_setup(self, *_):
         pass
