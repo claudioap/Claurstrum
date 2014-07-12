@@ -529,5 +529,18 @@ class InterfaceModule(Gtk.Box):
             self.interface['setup']['php_sqlite_on'].set_sensitive(True)
             self.interface['setup']['php_myadmin_on'].set_sensitive(True)
 
+    def load_old_setup(self, *args):
+        for path in args:
+            if os.path.isfile(path):
+                print("One valid path")
+            else:
+                print("An invalid path")
+
     def apply_new_setup(self, *_):
         pass
+
+    def connect_self_to_nb(self):
+        self.notebook.interface_module = self
+
+    def open_config(self, file):
+        print(file)

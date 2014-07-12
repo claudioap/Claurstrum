@@ -237,3 +237,9 @@ class InterfaceModule(Gtk.Box):
             dialog.run()
             self.refresh()
             dialog.destroy()
+
+    def connect_self_to_nb(self):
+        self.notebook.interface_module = self
+
+    def open_config(self, file):
+        print(file)

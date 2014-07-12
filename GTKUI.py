@@ -38,6 +38,7 @@ class MainWindow(Gtk.Window):
             icon = Gio.ThemedIcon(name="document-open-symbolic")
             icon = Gtk.Image.new_from_gicon(icon, Gtk.IconSize.BUTTON)
             button.add(icon)
+            button.connect("clicked", self.file_chooser)
             left_header_button_box.add(button)
             button = Gtk.Button("Reset")
             left_header_button_box.add(button)
@@ -123,6 +124,7 @@ class MainWindow(Gtk.Window):
             else:
                 tabbed_content = Gtk.Notebook()
                 ui_class.notebook = tabbed_content
+                ui_class.connect_self_to_nb()
                 for y in range(len(items[x])):
                 # For every page of the current category
                     tabbed_content.append_page(
@@ -250,3 +252,26 @@ class MainWindow(Gtk.Window):
         #  it changes the visible stack child
         if row is not None:
             self.stack.set_visible_child_name(row.get_child().get_text())
+
+    def file_chooser(self, *_):
+        dialog = Gtk.FileChooserDialog(
+            "Please choose a file", self, Gtk.FileChooserAction.OPEN,
+            (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN,
+             Gtk.ResponseType.OK))
+
+        filter_text = Gtk.FileFilter()
+        filter_text.set_name("Claurstrum config")
+        filter_text.add_pattern("*.claur")
+        dialog.add_filter(filter_text)
+
+        filter_any = Gtk.FileFilter()
+        filter_any.set_name("Any files")
+        filter_any.add_pattern("*")
+        dialog.add_filter(filter_any)
+
+        response = dialog.run()
+        if response == Gtk.ResponseType.OK:
+            result = dialog.get_filename()
+            interface_module = self.stack.get_visible_child().interface_module
+            interface_module.open_config(result)
+        dialog.destroy()

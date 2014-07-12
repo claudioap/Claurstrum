@@ -99,3 +99,9 @@ class InterfaceModule(Gtk.Box):
 
     def next_page(self, *_):
         self.notebook.next_page()
+
+    def connect_self_to_nb(self):
+        self.notebook.interface_module = self
+
+    def open_config(self, file):
+        pass
