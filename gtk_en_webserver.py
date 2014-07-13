@@ -248,20 +248,22 @@ class InterfaceModule(Gtk.Box):
         hbox.set_halign(Gtk.Align.START)
         self.interface['setup']['php_on'] =\
             Gtk.CheckButton(label="Enable PHP Support")
+        self.interface['setup']['php_on'].connect(
+            "notify::active", self.activate_php)
         hbox.pack_start(self.interface['setup']['php_on'], True, False, 0)
         grid.attach(hbox, 2, 2, 1, 1)
 
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         hbox.set_halign(Gtk.Align.START)
         self.interface['setup']['php_mdb_on'] =\
-            Gtk.CheckButton(label="PHP - Enable MariaDB")
+            Gtk.CheckButton(label="PHP - Enable MariaDB", sensitive=False)
         hbox.pack_start(self.interface['setup']['php_mdb_on'], True, False, 0)
         grid.attach(hbox, 2, 3, 1, 1)
 
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         hbox.set_halign(Gtk.Align.START)
         self.interface['setup']['php_sqlite_on'] =\
-            Gtk.CheckButton(label="PHP - Enable SQLite")
+            Gtk.CheckButton(label="PHP - Enable SQLite", sensitive=False)
         hbox.pack_start(
             self.interface['setup']['php_sqlite_on'], True, False, 0)
         grid.attach(hbox, 2, 4, 1, 1)
@@ -269,7 +271,7 @@ class InterfaceModule(Gtk.Box):
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         hbox.set_halign(Gtk.Align.START)
         self.interface['setup']['php_myadmin_on'] =\
-            Gtk.CheckButton(label="PHP - Install PHPMyAdmin")
+            Gtk.CheckButton(label="PHP - Install PHPMyAdmin", sensitive=False)
         hbox.pack_start(
             self.interface['setup']['php_myadmin_on'], True, False, 0)
         grid.attach(hbox, 2, 5, 1, 1)
@@ -469,10 +471,8 @@ class InterfaceModule(Gtk.Box):
         self.interface['setup']['ssl_on'].set_sensitive(True)
         self.interface['setup']['gzip_on'].set_sensitive(True)
         self.interface['setup']['php_on'].set_sensitive(True)
-        self.interface['setup']['php_mdb_on'].set_sensitive(True)
-        self.interface['setup']['php_sqlite_on'].set_sensitive(True)
-        self.interface['setup']['php_myadmin_on'].set_sensitive(True)
         self.activate_ipv6()
+        self.activate_php()
         self.activate_reverse_proxy()
 
     def disable_setup_widgets(self):
@@ -484,16 +484,10 @@ class InterfaceModule(Gtk.Box):
         self.interface['setup']['reverse_proxy'].set_sensitive(False)
         self.interface['setup']['document_root_label'].set_sensitive(False)
         self.interface['setup']['document_root'].set_sensitive(False)
-        self.interface['setup']['log_folder_label'].set_sensitive(False)
-        self.interface['setup']['log_folder'].set_sensitive(False)
-        self.interface['setup']['max_connections'].set_sensitive(False)
-        self.interface['setup']['workers'].set_sensitive(False)
-        self.interface['setup']['keep_alive'].set_sensitive(False)
         self.interface['setup']['reverse_ip'].set_sensitive(False)
         self.interface['setup']['reverse_port'].set_sensitive(False)
         self.interface['setup']['reverse_ipv'].set_sensitive(False)
         self.interface['setup']['ssl_on'].set_sensitive(False)
-        self.interface['setup']['gzip_on'].set_sensitive(False)
         self.interface['setup']['php_on'].set_sensitive(False)
         self.interface['setup']['php_mdb_on'].set_sensitive(False)
         self.interface['setup']['php_sqlite_on'].set_sensitive(False)
@@ -505,6 +499,17 @@ class InterfaceModule(Gtk.Box):
             self.interface['setup']['ipv6'].set_sensitive(True)
         else:
             self.interface['setup']['ipv6'].set_sensitive(False)
+
+    def activate_php(self, *_):
+        activated = self.interface['setup']['php_on'].get_active()
+        if activated:
+            self.interface['setup']['php_mdb_on'].set_sensitive(True)
+            self.interface['setup']['php_sqlite_on'].set_sensitive(True)
+            self.interface['setup']['php_myadmin_on'].set_sensitive(True)
+        else:
+            self.interface['setup']['php_mdb_on'].set_sensitive(False)
+            self.interface['setup']['php_sqlite_on'].set_sensitive(False)
+            self.interface['setup']['php_myadmin_on'].set_sensitive(False)
 
     def activate_reverse_proxy(self, *_):
         activated = self.interface['setup']['reverse_proxy'].get_active()
@@ -524,10 +529,6 @@ class InterfaceModule(Gtk.Box):
             self.interface['setup']['reverse_ipv'].set_sensitive(False)
             self.interface['setup']['document_root_label'].set_sensitive(True)
             self.interface['setup']['document_root'].set_sensitive(True)
-            self.interface['setup']['php_on'].set_sensitive(True)
-            self.interface['setup']['php_mdb_on'].set_sensitive(True)
-            self.interface['setup']['php_sqlite_on'].set_sensitive(True)
-            self.interface['setup']['php_myadmin_on'].set_sensitive(True)
 
     def load_old_setup(self, *args):
         for path in args:
