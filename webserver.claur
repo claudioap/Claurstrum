@@ -1,0 +1,51 @@
+{
+  "Main": {
+    "on": true,
+    "hostname": "localhost",
+    "ip": "127.0.0.1",
+    "ipv6_on": true,
+    "ipv6": "::1",
+    "port": 80,
+    "root": "/srv/http/",
+    "logs": "/var/log/http/",
+    "connections": 64,
+    "processes": 2,
+    "alive_time": 60,
+    "reverse_proxy": false,
+    "reverse_proxy_ip": null,
+    "reverse_proxy_port": null,
+    "reverse_proxy_ipv": null,
+    "ssl": true,
+    "ssl_profile": "Demo_Profile",
+    "gzip": true,
+    "php": false,
+    "php_mdb": false,
+    "php_sqlite": false,
+    "php_myadmin": false
+  },
+  "VHosts": [
+    {
+      "hostname": "localhost",
+      "ip": "127.0.0.1",
+      "ipv6_on": true,
+      "ipv6": "::1",
+      "port": 80,
+      "root": "/srv/http/",
+      "logs": "/var/log/http/",
+      "reverse_proxy": false,
+      "reverse_proxy_ip": null,
+      "reverse_proxy_port": null,
+      "reverse_proxy_ipv": null,
+      "ssl": true,
+      "ssl_profile": "Demo_Profile",
+      "php": false
+    }
+  ],
+  "SSL": [
+    {
+      "profile": "Demo_Profile",
+      "cert": "/etc/ssl/cert.crt",
+      "key": "/etc/ssl/key.key"
+    }
+  ]
+}
