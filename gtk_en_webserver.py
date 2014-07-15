@@ -2,9 +2,11 @@
 import os.path
 import subprocess
 import re
+import json
+import socket
 
 from gi.repository import Gtk, Gdk, GLib
-
+from jinja2 import FileSystemLoader, Environment
 
 class InterfaceModule(Gtk.Box):
     def __init__(self, menu_entry):
@@ -279,7 +281,7 @@ class InterfaceModule(Gtk.Box):
         box.pack_start(grid, True, True, 0)
 
         button = Gtk.Button("Apply")
-        button.connect("clicked", self.apply_new_setup)
+        button.connect("clicked", self.apply_setup)
         box.pack_end(button, False, False, 0)
 
         return box
@@ -530,18 +532,171 @@ class InterfaceModule(Gtk.Box):
             self.interface['setup']['document_root_label'].set_sensitive(True)
             self.interface['setup']['document_root'].set_sensitive(True)
 
-    def load_old_setup(self, *args):
-        for path in args:
-            if os.path.isfile(path):
-                print("One valid path")
+    def load_config(self, config):
+        main = config['Main']
+        hosts = config['VHosts']
+        valid_hosts = []
+        valid_ssl_profiles = []
+        ssl = config['SSL']
+        if 'connections' in main and 'processes' in main and\
+                'alive_time' in main and 'gzip' in main:
+            valid_server = True
+            if 'on' in main and main['on'] is True and 'hostname' in main and\
+                    'ip' in main and 'port' in main and 'logs' in main:
+                valid_main = True
+                if self.valid_ipv4(main['ipv4']):
+                    valid_ipv4 = True
+                else:
+                    valid_ipv4 = False
+                if 'ipv6' in main and self.valid_ipv6(main['ipv6']):
+                    valid_ipv6 = True
+                else:
+                    valid_ipv6 = False
             else:
-                print("An invalid path")
+                valid_main = False
+        else:
+            valid_server = False
+        if 'ssl_profile' in main and main['ssl_profile'] is not None:
+            valid_ssl = True
+        else:
+            valid_ssl = False
+        if 'reverse_proxy' in main and 'reverse_proxy_ip' in main and\
+                'reverse_proxy_port' in main and 'reverse_proxy_ipv' in main:
+            valid_reverse = True
+        else:
+            valid_reverse = False
+        if 'root' in main and os.path.exists(main['root']):
+            valid_root = True
+        else:
+            valid_root = False
+        if (valid_reverse or main['reverse_proxy'] is True) and valid_root and\
+            'php' in main and main['php'] is True and 'php_mdb' in main and\
+            'php_sqlite' in main and (main['php_mdb'] is True == (
+                'php_myadmin' in main and main['php_myadmin'] is True)):
+            valid_php = True
+        else:
+            valid_php = False
+        #--------------------- VHosts ------------------------------------------
+        for host in hosts:
+            if 'hostname' in host and 'port' in host and 'logs' in host:
+                valid_host = True
+                if self.valid_ipv4(host['ipv4']):
+                    valid_ipv4 = True
+                else:
+                    valid_ipv4 = False
+                if 'ipv6' in main and self.valid_ipv6(host['ipv6']):
+                    valid_ipv6 = True
+                else:
+                    valid_ipv6 = False
+                if not (valid_ipv4 or valid_ipv6):
+                    valid_host = False
+            else:
+                valid_host = False
 
-    def apply_new_setup(self, *_):
+            if valid_host:
+                if 'ssl_profile' in host and main['ssl_profile'] is not None:
+                    valid_ssl = True
+                else:
+                    valid_ssl = False
+                if 'reverse_proxy' in host and host['reverse_proxy'] is True\
+                        and 'reverse_proxy_ip' in host and 'reverse_proxy_port'\
+                        in main and 'reverse_proxy_ipv' in host:
+                    valid_reverse = True
+                    if host['reverse_proxy_ipv'] == 4:
+                        if not self.valid_ipv4(host['ipv4']):
+                            valid_reverse = False
+                    elif host['reverse_proxy_ipv'] == 6:
+                        if not self.valid_ipv6(host['ipv6']):
+                            valid_reverse = False
+                    else:
+                        valid_reverse = False
+                else:
+                    valid_reverse = False
+                if 'root' in host and os.path.exists(host['root']):
+                    if valid_reverse:
+                        valid_host = False
+                else:
+                    valid_host = False
+
+                if not valid_reverse and 'php' in main and main['php'] is True\
+                    and 'php_mdb' in main and 'php_sqlite' in main and (
+                    main['php_mdb'] is True == ('php_myadmin' in main and\
+                        main['php_myadmin'] is True)):
+                    valid_php = True
+                else:
+                    valid_php = False
+            if valid_host:
+                valid_hosts.append([host, valid_ssl, valid_reverse, valid_php])
+        #------------------------ SSL ------------------------------------------
+        for profile in ssl:
+            if 'profile' in profile and 'cert' in profile and 'key' in profile:
+                valid_profile = True
+                if profile['profile'] is None or profile['profile'] == '':
+                    valid_profile = False
+                if not os.path.exists(profile['cert']):
+                    valid_profile = False
+                if not os.path.exists(profile['key']):
+                    valid_profile = False
+                if valid_profile:
+                    valid_ssl_profiles.append(profile)
+        #------------------- Relate SSL to Hosts -------------------------------
+        count = 0
+        for host in valid_hosts:
+            if host[1] is True:
+                host_cert = host[1]['ssl_profile']
+                match = False
+                for profile in valid_ssl_profiles:
+                    if profile["Profile"] == host_cert:
+                        match = True
+                if match:
+                    valid_hosts.pop(count)
+                    count -= 1
+            count += 1
+
+
+
+    def apply_setup(self, *_):
+        pass
+
+    def gen_config(self, config):
         pass
 
     def connect_self_to_nb(self):
         self.notebook.interface_module = self
 
     def open_config(self, file):
-        print(file)
+        try:
+            config_file = open(file, "r", encoding="utf-8")
+            config = json.load(config_file)
+        except ValueError:
+            print("Invalid configuration file")
+        else:
+            if 'Main' not in config or\
+                    'VHosts' not in config or\
+                    'SSL' not in config:
+                print("Invalid configuration file")
+            else:
+                self.load_config(config)
+
+    @staticmethod
+    def valid_ipv4(address):
+        try:
+            socket.inet_pton(socket.AF_INET, address)
+        except AttributeError:
+            try:
+                socket.inet_aton(address)
+            except socket.error:
+                return False
+            return address.count('.') == 3
+        except socket.error:
+            return False
+        return True
+
+    @staticmethod
+    def valid_ipv6(address):
+        try:
+            socket.inet_pton(socket.AF_INET6, address)
+        except socket.error:
+            return False
+        return True
+

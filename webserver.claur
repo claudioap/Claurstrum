@@ -3,7 +3,6 @@
     "on": true,
     "hostname": "localhost",
     "ip": "127.0.0.1",
-    "ipv6_on": true,
     "ipv6": "::1",
     "port": 80,
     "root": "/srv/http/",
@@ -15,7 +14,6 @@
     "reverse_proxy_ip": null,
     "reverse_proxy_port": null,
     "reverse_proxy_ipv": null,
-    "ssl": true,
     "ssl_profile": "Demo_Profile",
     "gzip": true,
     "php": false,
@@ -27,7 +25,6 @@
     {
       "hostname": "localhost",
       "ip": "127.0.0.1",
-      "ipv6_on": true,
       "ipv6": "::1",
       "port": 80,
       "root": "/srv/http/",
