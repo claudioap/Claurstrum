@@ -1,0 +1,19 @@
+server {
+    listen       {{sslport}} ssl;
+    server_name  {{hostname}};
+
+    ssl_certificate      {{sslcert}};
+    ssl_certificate_key  {{sslkey}};
+
+    ssl_session_cache    shared:SSL:1m;
+    ssl_session_timeout  5m;
+    ssl_ciphers  HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers  on;
+    location / {
+        root   {{root}};
+        index  index.html index.htm {{php}};
+    }
+    location ~ /\.ht {
+        deny  all;
+    }
+}

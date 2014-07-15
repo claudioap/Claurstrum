@@ -1,0 +1,12 @@
+server {
+    listen       {{port}};
+    server_name  {{hostname}};
+
+    location / {
+        root   {{root}};
+        index  index.html index.htm {{php}};
+    }
+    location ~ /\.ht {
+        deny  all;
+    }
+}

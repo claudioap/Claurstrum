@@ -1,0 +1,16 @@
+user html;
+worker_processes  {{processes}};
+error_log  {{logs}};
+events {
+    worker_connections  {{connections}};
+}
+
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+    sendfile        on;
+    keepalive_timeout {{keepalive}};
+    gzip  {{gzip}};
+    {{hosts}}
+}
+
