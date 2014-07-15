@@ -259,6 +259,8 @@ class InterfaceModule(Gtk.Box):
         hbox.set_halign(Gtk.Align.START)
         self.interface['setup']['php_mdb_on'] =\
             Gtk.CheckButton(label="PHP - Enable MariaDB", sensitive=False)
+        self.interface['setup']['php_mdb_on'].connect(
+            "notify::active", self.activate_php)
         hbox.pack_start(self.interface['setup']['php_mdb_on'], True, False, 0)
         grid.attach(hbox, 2, 3, 1, 1)
 
@@ -507,7 +509,11 @@ class InterfaceModule(Gtk.Box):
         if activated:
             self.interface['setup']['php_mdb_on'].set_sensitive(True)
             self.interface['setup']['php_sqlite_on'].set_sensitive(True)
-            self.interface['setup']['php_myadmin_on'].set_sensitive(True)
+            if self.interface['setup']['php_mdb_on'].get_active():
+                self.interface['setup']['php_myadmin_on'].set_sensitive(True)
+            else:
+                self.interface['setup']['php_myadmin_on'].set_sensitive(False)
+
         else:
             self.interface['setup']['php_mdb_on'].set_sensitive(False)
             self.interface['setup']['php_sqlite_on'].set_sensitive(False)
@@ -652,8 +658,6 @@ class InterfaceModule(Gtk.Box):
                     valid_hosts.pop(count)
                     count -= 1
             count += 1
-
-
 
     def apply_setup(self, *_):
         pass
