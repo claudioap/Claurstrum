@@ -8,6 +8,7 @@ import socket
 from gi.repository import Gtk, Gdk, GLib
 from jinja2 import FileSystemLoader, Environment
 
+
 class InterfaceModule(Gtk.Box):
     def __init__(self, menu_entry):
         self.lbl_mem_usage = Gtk.Label("Memory Usage: N/A")
@@ -23,7 +24,9 @@ class InterfaceModule(Gtk.Box):
         self.pid = None
         self.cpu = None
         self.mem = None
-        self.interface = {'info': {}, 'setup': {}, 'ssl': {}, 'vhosts': {}}
+        self.interface = {
+            'info': {}, 'setup': {}, 'ssl': {}, 'vhosts_container': None,
+            'vhosts_list': None, 'vhosts': []}
         self.ui = self.build_ui()
 
     def build_ui(self):
@@ -293,10 +296,153 @@ class InterfaceModule(Gtk.Box):
         box = Gtk.Box()
         return box
 
-    @staticmethod
-    def ui_vhost_tab():
-        box = Gtk.Box()
-        return box
+    def ui_vhost_tab(self):
+        self.interface['vhosts_container'] = Gtk.Box()
+        path = "./webserver.claur"
+        if os.path.exists(path):
+            pass
+        return self.interface['vhosts_container']
+
+    def vhosts_load(self, hosts):
+        if self.interface['vhosts_list'] is not None:
+            self.interface['vhosts_container'].remove(
+                self.interface['vhosts_list'])
+        self.interface['vhosts_list'] = Gtk.ListBox()
+        self.interface['vhosts_list'].set_selection_mode(
+            Gtk.SelectionMode.NONE)
+        count = 0
+        for host in hosts:
+            row = Gtk.ListBoxRow()
+            expander = Gtk.Expander.new_with_mnemonic(host['hostname'])
+            grid = Gtk.Grid()
+            grid.set_margin_left(20)
+            grid.set_margin_right(20)
+            grid.set_column_spacing(20)
+            grid.set_row_spacing(1)
+
+            #--------------- First Column ---------------------
+            hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+            hbox.set_halign(Gtk.Align.END)
+            label = Gtk.Label("Hostname:")
+            hbox.pack_start(label, True, False, 0)
+            self.interface['vhosts'][count]['hostname'] = Gtk.Entry()
+            hbox.pack_start(label, True, False, 0)
+            grid.attach(hbox, 0, 0, 1, 1)
+
+            hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+            hbox.set_halign(Gtk.Align.END)
+            label = Gtk.Label("IPV4:")
+            hbox.pack_start(label, True, False, 0)
+            self.interface['vhosts'][count]['ipv4'] = Gtk.Entry()
+            hbox.pack_start(label, True, False, 0)
+            grid.attach(hbox, 0, 1, 1, 1)
+
+            hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+            hbox.set_halign(Gtk.Align.END)
+            label = Gtk.Label("IPV6:")
+            hbox.pack_start(label, True, False, 0)
+            self.interface['vhosts'][count]['ipv6'] = Gtk.Entry()
+            hbox.pack_start(
+                self.interface['vhosts'][count]['ipv6'], True, False, 0)
+            grid.attach(hbox, 0, 2, 1, 1)
+
+            hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+            hbox.set_halign(Gtk.Align.END)
+            label = Gtk.Label("Port:")
+            hbox.pack_start(label, True, False, 0)
+            self.interface['vhosts'][count]['port'] = Gtk.Entry()
+            hbox.pack_start(
+                self.interface['vhosts'][count]['port'], True, False, 0)
+            grid.attach(hbox, 0, 3, 1, 1)
+
+            #--------------- Second Column ---------------------
+            hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+            hbox.set_halign(Gtk.Align.END)
+            label = Gtk.Label("Path:")
+            hbox.pack_start(label, True, False, 0)
+            self.interface['vhosts'][count]['document_root_label'] =\
+                Gtk.Label("")
+            hbox.pack_start(
+                self.interface['vhosts'][count]['document_root_label'],
+                True, False, 0)
+            self.interface['vhosts'][count]['document_root'] = Gtk.FileChooserButton()
+            hbox.pack_start(
+                self.interface['vhosts'][count]['document_root'],
+                True, False, 0)
+            grid.attach(hbox, 1, 0, 1, 1)
+
+            hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+            hbox.set_halign(Gtk.Align.END)
+            label = Gtk.Label("Log folder:")
+            hbox.pack_start(label, True, False, 0)
+            self.interface['vhosts'][count]['log_folder_label'] = Gtk.Label("")
+            hbox.pack_start(self.interface['vhosts'][count]['log_folder_label'],
+                True, False, 0)
+            self.interface['vhosts'][count]['log_folder'] =\
+                Gtk.FileChooserButton()
+            hbox.pack_start(
+                self.interface['vhosts'][count]['log_folder'], True, False, 0)
+            grid.attach(hbox, 1, 1, 1, 1)
+
+            hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+            hbox.set_halign(Gtk.Align.END)
+            self.interface['vhosts'][count]['reverse_proxy'] = Gtk.CheckButton(
+                label="Enable reverse Proxy:")
+            self.interface['vhosts'][count]['reverse_proxy'].set_margin_top(20)
+            hbox.pack_start(
+                self.interface['vhosts'][count]['reverse_proxy'],
+                True, False, 0)
+            grid.attach(hbox, 1, 2, 1, 2)
+
+            #--------------- Third Column ---------------------
+            hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+            hbox.set_halign(Gtk.Align.START)
+            self.interface['vhosts'][count]['ssl'] =\
+                Gtk.CheckButton(label="Enable SSL")
+            hbox.pack_start(
+                self.interface['vhosts'][count]['ssl_on'], True, False, 0)
+            grid.attach(hbox, 2, 0, 1, 1)
+
+            hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+            hbox.set_halign(Gtk.Align.START)
+            self.interface['vhosts'][count]['php_on'] =\
+                Gtk.CheckButton(label="Enable PHP Support")
+            hbox.pack_start(
+                self.interface['vhosts'][count]['php_on'], True, False, 0)
+            grid.attach(hbox, 2, 1, 1, 1)
+
+            expander.add(grid)
+            row.add(expander)
+            self.interface['vhosts_list'].add(row)
+
+            hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+            Gtk.StyleContext.add_class(hbox.get_style_context(), "linked")
+            hbox.set_halign(Gtk.Align.START)
+            self.interface['vhosts'][count]['reverse_proxy_ip'] =\
+                Gtk.Entry(sensitive=False)
+            hbox.pack_start(
+                self.interface['vhosts'][count]['reverse_proxy_ip'],
+                False, False, 0)
+            self.interface['vhosts'][count]['reverse_proxy_port'] =\
+                Gtk.Entry(sensitive=False)
+            label.set_width_chars(5)
+            label.set_max_width_chars(5)
+            hbox.pack_start(
+                self.interface['vhosts'][count]['reverse_proxy_port'],
+                False, False, 0)
+            self.interface['vhosts'][count]['reverse_proxy_ipv'] =\
+                Gtk.ComboBoxText(sensitive=False)
+            self.interface['vhosts'][count]['reverse_proxy_ipv'].\
+                append("4", "IPV4")
+            self.interface['vhosts'][count]['reverse_proxy_ipv'].\
+                append("6", "IPV6")
+            hbox.pack_end(
+                self.interface['vhosts'][count]['reverse_proxy_ipv'],
+                False, False, 0)
+
+            grid.attach(hbox, 2, 3, 1, 1)
+            count += 1;
+        self.interface['vhosts_container'].pack_start(self.interface['vhosts_list'], True, True, 1)
 
     def refresh(self, *_):
         if os.path.isfile("/usr/bin/nginx"):
