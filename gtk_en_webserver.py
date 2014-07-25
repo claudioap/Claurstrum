@@ -24,6 +24,7 @@ class InterfaceModule(Gtk.Box):
         self.pid = None
         self.cpu = None
         self.mem = None
+        self.loaded_config = None
         self.interface = {
             'info': {}, 'setup': {}, 'ssl': {}, 'vhosts_container': None,
             'vhosts_list': None, 'vhosts': []}
@@ -36,6 +37,9 @@ class InterfaceModule(Gtk.Box):
             self.ui_ssl_tab(),
             self.ui_vhost_tab()
         ]
+        path = "./webserver.claur"
+        if os.path.exists(path):
+            self.open_config(path)
         return ui
 
     def ui_info_tab(self):
@@ -297,44 +301,55 @@ class InterfaceModule(Gtk.Box):
         return box
 
     def ui_vhost_tab(self):
-        self.interface['vhosts_container'] = Gtk.Box()
-        path = "./webserver.claur"
-        if os.path.exists(path):
-            pass
+        self.interface['vhosts_container'] = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         return self.interface['vhosts_container']
 
-    def vhosts_load(self, hosts):
+    def vhosts_load(self):
         if self.interface['vhosts_list'] is not None:
             self.interface['vhosts_container'].remove(
                 self.interface['vhosts_list'])
+
         self.interface['vhosts_list'] = Gtk.ListBox()
         self.interface['vhosts_list'].set_selection_mode(
             Gtk.SelectionMode.NONE)
         count = 0
+        hosts = self.loaded_config[0]
         for host in hosts:
+            print(host)
             row = Gtk.ListBoxRow()
-            expander = Gtk.Expander.new_with_mnemonic(host['hostname'])
+            expander = Gtk.Expander.new_with_mnemonic(host[0]['hostname'])
+            row.add(expander)
             grid = Gtk.Grid()
             grid.set_margin_left(20)
             grid.set_margin_right(20)
             grid.set_column_spacing(20)
             grid.set_row_spacing(1)
-
             #--------------- First Column ---------------------
             hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
             hbox.set_halign(Gtk.Align.END)
             label = Gtk.Label("Hostname:")
             hbox.pack_start(label, True, False, 0)
+            self.interface['vhosts'].append({})
             self.interface['vhosts'][count]['hostname'] = Gtk.Entry()
-            hbox.pack_start(label, True, False, 0)
+            self.interface['vhosts'][count]['hostname'].\
+                set_text(host[0]['hostname'])
+            hbox.pack_start(
+                self.interface['vhosts'][count]['hostname'], True, False, 0)
             grid.attach(hbox, 0, 0, 1, 1)
 
             hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
             hbox.set_halign(Gtk.Align.END)
             label = Gtk.Label("IPV4:")
             hbox.pack_start(label, True, False, 0)
-            self.interface['vhosts'][count]['ipv4'] = Gtk.Entry()
-            hbox.pack_start(label, True, False, 0)
+            self.interface['vhosts'][count]['ip'] = Gtk.Entry()
+            if not host[4]:
+                self.interface['vhosts'][count]['ip'].set_text("N/A")
+            else:
+                self.interface['vhosts'][count]['ip'].set_text(
+                    host[0]["ip"]
+                )
+            hbox.pack_start(
+                self.interface['vhosts'][count]['ip'], True, False, 0)
             grid.attach(hbox, 0, 1, 1, 1)
 
             hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
@@ -342,6 +357,12 @@ class InterfaceModule(Gtk.Box):
             label = Gtk.Label("IPV6:")
             hbox.pack_start(label, True, False, 0)
             self.interface['vhosts'][count]['ipv6'] = Gtk.Entry()
+            if not host[5]:
+                self.interface['vhosts'][count]['ipv6'].set_text("N/A")
+            else:
+                self.interface['vhosts'][count]['ipv6'].set_text(
+                    host[0]["ipv6"]
+                )
             hbox.pack_start(
                 self.interface['vhosts'][count]['ipv6'], True, False, 0)
             grid.attach(hbox, 0, 2, 1, 1)
@@ -351,6 +372,8 @@ class InterfaceModule(Gtk.Box):
             label = Gtk.Label("Port:")
             hbox.pack_start(label, True, False, 0)
             self.interface['vhosts'][count]['port'] = Gtk.Entry()
+            self.interface['vhosts'][count]['port'].set_text(
+                    str(host[0]["port"]))
             hbox.pack_start(
                 self.interface['vhosts'][count]['port'], True, False, 0)
             grid.attach(hbox, 0, 3, 1, 1)
@@ -360,12 +383,17 @@ class InterfaceModule(Gtk.Box):
             hbox.set_halign(Gtk.Align.END)
             label = Gtk.Label("Path:")
             hbox.pack_start(label, True, False, 0)
-            self.interface['vhosts'][count]['document_root_label'] =\
-                Gtk.Label("")
+            if host[2]:
+                self.interface['vhosts'][count]['document_root_label'] =\
+                    Gtk.Label("N/A")
+            else:
+                self.interface['vhosts'][count]['document_root_label'] =\
+                    Gtk.Label(host[0]['root'])
             hbox.pack_start(
                 self.interface['vhosts'][count]['document_root_label'],
                 True, False, 0)
-            self.interface['vhosts'][count]['document_root'] = Gtk.FileChooserButton()
+            self.interface['vhosts'][count]['document_root'] =\
+                Gtk.FileChooserButton()
             hbox.pack_start(
                 self.interface['vhosts'][count]['document_root'],
                 True, False, 0)
@@ -375,9 +403,11 @@ class InterfaceModule(Gtk.Box):
             hbox.set_halign(Gtk.Align.END)
             label = Gtk.Label("Log folder:")
             hbox.pack_start(label, True, False, 0)
-            self.interface['vhosts'][count]['log_folder_label'] = Gtk.Label("")
-            hbox.pack_start(self.interface['vhosts'][count]['log_folder_label'],
-                True, False, 0)
+            self.interface['vhosts'][count]['log_folder_label'] = Gtk.Label(
+                host[0]['logs'])
+
+            hbox.pack_start(self.interface['vhosts'][count]['log_folder_label']
+                ,True ,False ,0)
             self.interface['vhosts'][count]['log_folder'] =\
                 Gtk.FileChooserButton()
             hbox.pack_start(
@@ -388,6 +418,9 @@ class InterfaceModule(Gtk.Box):
             hbox.set_halign(Gtk.Align.END)
             self.interface['vhosts'][count]['reverse_proxy'] = Gtk.CheckButton(
                 label="Enable reverse Proxy:")
+            if host[2]:
+                self.interface['vhosts'][count]['reverse_proxy'].\
+                    set_active(True)
             self.interface['vhosts'][count]['reverse_proxy'].set_margin_top(20)
             hbox.pack_start(
                 self.interface['vhosts'][count]['reverse_proxy'],
@@ -397,41 +430,62 @@ class InterfaceModule(Gtk.Box):
             #--------------- Third Column ---------------------
             hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
             hbox.set_halign(Gtk.Align.START)
-            self.interface['vhosts'][count]['ssl'] =\
+            self.interface['vhosts'][count]['ssl_on'] =\
                 Gtk.CheckButton(label="Enable SSL")
+            if host[1]:
+                self.interface['vhosts'][count]['ssl_on'].set_active(True)
             hbox.pack_start(
                 self.interface['vhosts'][count]['ssl_on'], True, False, 0)
             grid.attach(hbox, 2, 0, 1, 1)
+
+            hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+            label = Gtk.Label("SSL Profile:")
+            hbox.pack_start(label, False, False, 0)
+            self.interface['vhosts'][count]['ssl_profile'] =\
+                Gtk.ComboBoxText()
+            self.interface['vhosts'][count]['ssl_profile'].\
+                append("fixme", "SSL_PROFILE")
+            hbox.pack_end(
+                self.interface['vhosts'][count]['ssl_profile'],
+                False, False, 0)
+            grid.attach(hbox, 2, 1, 1, 1)
 
             hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
             hbox.set_halign(Gtk.Align.START)
             self.interface['vhosts'][count]['php_on'] =\
                 Gtk.CheckButton(label="Enable PHP Support")
+            if host[3]:
+                self.interface['vhosts'][count]['php_on'].set_active(True)
             hbox.pack_start(
                 self.interface['vhosts'][count]['php_on'], True, False, 0)
-            grid.attach(hbox, 2, 1, 1, 1)
-
-            expander.add(grid)
-            row.add(expander)
-            self.interface['vhosts_list'].add(row)
+            grid.attach(hbox, 2, 2, 1, 1)
 
             hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
             Gtk.StyleContext.add_class(hbox.get_style_context(), "linked")
             hbox.set_halign(Gtk.Align.START)
             self.interface['vhosts'][count]['reverse_proxy_ip'] =\
-                Gtk.Entry(sensitive=False)
+                Gtk.Entry()
+            if host[2]:
+                self.interface['vhosts'][count]['reverse_proxy_ip'].\
+                    set_text(host[0]['reverse_proxy_ip'])
             hbox.pack_start(
                 self.interface['vhosts'][count]['reverse_proxy_ip'],
                 False, False, 0)
             self.interface['vhosts'][count]['reverse_proxy_port'] =\
-                Gtk.Entry(sensitive=False)
-            label.set_width_chars(5)
-            label.set_max_width_chars(5)
+                Gtk.Entry()
+            if host[2]:
+                self.interface['vhosts'][count]['reverse_proxy_port'].\
+                    set_text(str(host[0]['reverse_proxy_port']))
             hbox.pack_start(
                 self.interface['vhosts'][count]['reverse_proxy_port'],
                 False, False, 0)
+
+            self.interface['vhosts'][count]['reverse_proxy_port'].\
+                set_width_chars(5)
+            self.interface['vhosts'][count]['reverse_proxy_port'].\
+                set_max_width_chars(5)
             self.interface['vhosts'][count]['reverse_proxy_ipv'] =\
-                Gtk.ComboBoxText(sensitive=False)
+                Gtk.ComboBoxText()
             self.interface['vhosts'][count]['reverse_proxy_ipv'].\
                 append("4", "IPV4")
             self.interface['vhosts'][count]['reverse_proxy_ipv'].\
@@ -439,15 +493,31 @@ class InterfaceModule(Gtk.Box):
             hbox.pack_end(
                 self.interface['vhosts'][count]['reverse_proxy_ipv'],
                 False, False, 0)
-
             grid.attach(hbox, 2, 3, 1, 1)
+            expander.add(grid)
+            self.interface['vhosts_list'].add(row)
+            for item in self.interface['vhosts'][count].values():
+                item.row_count = count
             count += 1;
-        self.interface['vhosts_container'].pack_start(self.interface['vhosts_list'], True, True, 1)
+        self.interface['vhosts_list'].set_margin_left(1)
+        self.interface['vhosts_container'].\
+            pack_start(self.interface['vhosts_list'], True, True, 0)
+
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        Gtk.StyleContext.add_class(hbox.get_style_context(), "linked")
+        write_button = Gtk.Button(label="Write")
+        apply_button = Gtk.Button(label="Apply written config")
+        hbox.pack_start(write_button, True, True, 0)
+        hbox.pack_start(apply_button, True, True, 0)
+        self.interface['vhosts_container'].pack_start(hbox, False, True, 0)
+
+        self.interface['vhosts_container'].show_all()
 
     def refresh(self, *_):
         if os.path.isfile("/usr/bin/nginx"):
             try:
-                self.encoded_pid = subprocess.check_output(["pgrep nginx"], shell=True)
+                self.encoded_pid = subprocess.check_output(
+                    ["pgrep nginx"], shell=True)
             except subprocess.CalledProcessError:
                 self.lbl_nginx_result.set_text("Installed, not running")
                 self.lbl_nginx_result.override_color(
@@ -683,8 +753,9 @@ class InterfaceModule(Gtk.Box):
             self.interface['setup']['reverse_ipv'].set_sensitive(False)
             self.interface['setup']['document_root_label'].set_sensitive(True)
             self.interface['setup']['document_root'].set_sensitive(True)
+            self.interface['setup']['php_on'].set_sensitive(True)
 
-    def load_config(self, config):
+    def load_config(self, config):#FIXME Valid Server/Main
         main = config['Main']
         hosts = config['VHosts']
         valid_hosts = []
@@ -696,7 +767,7 @@ class InterfaceModule(Gtk.Box):
             if 'on' in main and main['on'] is True and 'hostname' in main and\
                     'ip' in main and 'port' in main and 'logs' in main:
                 valid_main = True
-                if self.valid_ipv4(main['ipv4']):
+                if self.valid_ipv4(main['ip']):
                     valid_ipv4 = True
                 else:
                     valid_ipv4 = False
@@ -732,7 +803,7 @@ class InterfaceModule(Gtk.Box):
         for host in hosts:
             if 'hostname' in host and 'port' in host and 'logs' in host:
                 valid_host = True
-                if self.valid_ipv4(host['ipv4']):
+                if 'ip' in main and self.valid_ipv4(host['ip']):
                     valid_ipv4 = True
                 else:
                     valid_ipv4 = False
@@ -751,34 +822,33 @@ class InterfaceModule(Gtk.Box):
                 else:
                     valid_ssl = False
                 if 'reverse_proxy' in host and host['reverse_proxy'] is True\
-                        and 'reverse_proxy_ip' in host and 'reverse_proxy_port'\
+                    and 'reverse_proxy_ip' in host and 'reverse_proxy_port'\
                         in main and 'reverse_proxy_ipv' in host:
                     valid_reverse = True
-                    if host['reverse_proxy_ipv'] == 4:
-                        if not self.valid_ipv4(host['ipv4']):
+                    if host['reverse_proxy_ipv'] == "4":
+                        if not self.valid_ipv4(host['reverse_proxy_ip']):
                             valid_reverse = False
-                    elif host['reverse_proxy_ipv'] == 6:
-                        if not self.valid_ipv6(host['ipv6']):
+                    elif host['reverse_proxy_ipv'] == "6":
+                        if not self.valid_ipv6(host['reverse_proxy_ip']):
                             valid_reverse = False
                     else:
                         valid_reverse = False
                 else:
                     valid_reverse = False
                 if 'root' in host and os.path.exists(host['root']):
-                    if valid_reverse:
-                        valid_host = False
+                    #if valid_reverse: FIXME
+                    #    valid_host = False
+                    pass
                 else:
                     valid_host = False
 
-                if not valid_reverse and 'php' in main and main['php'] is True\
-                    and 'php_mdb' in main and 'php_sqlite' in main and (
-                    main['php_mdb'] is True == ('php_myadmin' in main and\
-                        main['php_myadmin'] is True)):
+                if not valid_reverse and 'php' in host and host['php'] is True:
                     valid_php = True
                 else:
                     valid_php = False
             if valid_host:
-                valid_hosts.append([host, valid_ssl, valid_reverse, valid_php])
+                valid_hosts.append([host, valid_ssl, valid_reverse, valid_php,
+                                    valid_ipv4, valid_ipv6])
         #------------------------ SSL ------------------------------------------
         for profile in ssl:
             if 'profile' in profile and 'cert' in profile and 'key' in profile:
@@ -795,7 +865,7 @@ class InterfaceModule(Gtk.Box):
         count = 0
         for host in valid_hosts:
             if host[1] is True:
-                host_cert = host[1]['ssl_profile']
+                host_cert = host[0]['ssl_profile']
                 match = False
                 for profile in valid_ssl_profiles:
                     if profile["Profile"] == host_cert:
@@ -804,6 +874,8 @@ class InterfaceModule(Gtk.Box):
                     valid_hosts.pop(count)
                     count -= 1
             count += 1
+        self.loaded_config = [valid_hosts, valid_ssl_profiles]
+        self.vhosts_load();
 
     def apply_setup(self, *_):
         pass
