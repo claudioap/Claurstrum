@@ -1,0 +1,24 @@
+#Generated with Claurstrum
+
+Port {{port}}
+ListenAddress {{ip1}}
+{{disableip2}}ListenAddress {{ip2}}
+
+LoginGraceTime {{login_timeout}}m
+PermitRootLogin {{root_login}}
+MaxAuthTries {{auth_tries}}
+MaxSessions {{sessions}}
+
+PasswordAuthentication {{password_auth}}
+RSAAuthentication {{password_auth_deps}}
+PubkeyAuthentication {{password_auth_deps}}
+
+HostbasedAuthentication {{host_auth}}
+
+AllowTcpForwarding {{tcp}}
+
+X11Forwarding {{x11}}
+X11UseLocalhost {{x11}}
+
+PrintMotd {{message_enabled}}
+Banner {{message}}
