@@ -1,7 +1,9 @@
 #!/bin/python3
 import os
 import re
+import socket
 import subprocess
+import json
 
 from gi.repository import Gtk, Gdk, GLib
 
@@ -21,6 +23,8 @@ class InterfaceModule(Gtk.Box):
         self.cpu = None
         self.mem = None
         self.settings_interface = {'container': None, 'holder': None}
+        self.config_file = None
+        self.config = None
         self.ui = self.build_ui()
 
     def build_ui(self):
@@ -124,7 +128,7 @@ class InterfaceModule(Gtk.Box):
         hbox.set_halign(Gtk.Align.END)
         label = Gtk.Label("Login Timeout:")
         hbox.pack_start(label, True, False, 0)
-        self.settings_interface['timeout'] = Gtk.SpinButton.new_with_range(0, 100, 1)
+        self.settings_interface['timeout'] = Gtk.SpinButton.new_with_range(1, 100, 1)
         hbox.pack_start(self.settings_interface['timeout'], True, False, 0)
         grid.attach(hbox, 0, 1, 1, 1)
 
@@ -208,6 +212,8 @@ class InterfaceModule(Gtk.Box):
         Gtk.StyleContext.add_class(hbox.get_style_context(), "linked")
         write_button = Gtk.Button(label="Write")
         apply_button = Gtk.Button(label="Apply written config")
+        write_button.connect("clicked", self.write_config)
+        apply_button.connect("clicked", self.apply_config)
         hbox.pack_start(write_button, True, True, 0)
         hbox.pack_start(apply_button, True, True, 0)
         self.settings_interface['holder'].pack_start(hbox, False, True, 0)
@@ -371,8 +377,149 @@ class InterfaceModule(Gtk.Box):
             self.refresh()
             dialog.destroy()
 
+    def write_config(self, *_):
+        valid = True
+        ipv4 = self.settings_interface['ipv4'].get_text()
+        ipv6 = self.settings_interface['ipv6'].get_text()
+        port =self.settings_interface['port'].get_text()
+        timeout = self.settings_interface['timeout'].get_value()
+        tries = self.settings_interface['tries'].get_value()
+        sessions = self.settings_interface['sessions'].get_value()
+        password = self.settings_interface['password'].get_active()
+        host_auth = self.settings_interface['host_auth'].get_active()
+        root = self.settings_interface['root_login'].get_active()
+        tcp = self.settings_interface['tcp'].get_active()
+        x11 = self.settings_interface['x11'].get_active()
+        message = self.settings_interface['message'].get_text()
+        log_file = self.settings_interface['log'].get_filename()
+
+        ips = []
+        if self.valid_ipv4(ipv4):
+            ips.append(ipv4)
+        else:
+            ipv4 = None
+
+        if self.valid_ipv6(ipv6):
+            ips.append(ipv6)
+        else:
+            ipv6 = None
+
+        if ipv4 is None and ipv6 is None:
+            dialog = Gtk.MessageDialog(transient_for=None,
+                                       modal=True,
+                                       destroy_with_parent=True,
+                                       message_type=Gtk.MessageType.INFO,
+                                       buttons=Gtk.ButtonsType.CLOSE,
+                                       text="Invalid IPs:")
+            dialog.format_secondary_text(
+                "There are no valid IPs configured")
+            dialog.run()
+            dialog.destroy()
+
+        try:
+            port = int(port)
+        except ValueError:
+            valid = False
+            dialog = Gtk.MessageDialog(transient_for=None,
+                                       modal=True,
+                                       destroy_with_parent=True,
+                                       message_type=Gtk.MessageType.INFO,
+                                       buttons=Gtk.ButtonsType.CLOSE,
+                                       text="Invalid port:")
+            dialog.format_secondary_text(
+                "Invalid port field: Not a number.")
+            dialog.run()
+            dialog.destroy()
+        else:
+            if port > 65535 or port < 1:
+                valid = False
+                dialog = Gtk.MessageDialog(transient_for=None,
+                                       modal=True,
+                                       destroy_with_parent=True,
+                                       message_type=Gtk.MessageType.INFO,
+                                       buttons=Gtk.ButtonsType.CLOSE,
+                                       text="Invalid port:")
+                dialog.format_secondary_text(
+                    "Invalid port number: Out of valid range")
+                dialog.run()
+                dialog.destroy()
+
+        if log_file is None:
+            valid = False
+            dialog = Gtk.MessageDialog(transient_for=None,
+                                   modal=True,
+                                   destroy_with_parent=True,
+                                   message_type=Gtk.MessageType.INFO,
+                                   buttons=Gtk.ButtonsType.CLOSE,
+                                   text="Invalid port:")
+            dialog.format_secondary_text(
+                "No log file selected")
+            dialog.run()
+            dialog.destroy()
+
+        if valid:
+            self.config = {'ip': ips, 'port': port, 'root': root,
+                      'password_auth': password, 'host_auth': host_auth,
+                      'timeout': timeout, 'tries': tries, 'sessions': sessions,
+                      'tcp': tcp, 'x11': x11, 'log': log_file,
+                      'message': message}
+            dialog = Gtk.FileChooserDialog(
+                "Please make a config file", None,
+                Gtk.FileChooserAction.SAVE,
+                (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN,
+                 Gtk.ResponseType.OK))
+
+            response = dialog.run()
+            if response == Gtk.ResponseType.OK:
+                self.config_file = dialog.get_filename()
+            elif self.config_file is None:
+                valid = False
+            dialog.destroy()
+
+        if valid:
+            file = open(self.config_file, 'w')
+            file.write(json.dumps(self.config))
+
+    def apply_config(self, *_):
+        if self.config_file is not None:
+            pass
+        else:
+            dialog = Gtk.MessageDialog(transient_for=None,
+                                   modal=True,
+                                   destroy_with_parent=True,
+                                   message_type=Gtk.MessageType.INFO,
+                                   buttons=Gtk.ButtonsType.CLOSE,
+                                   text="No saved config:")
+            dialog.format_secondary_text(
+                "You need to write a config file before you can apply " +
+                "its changes!")
+            dialog.run()
+            dialog.destroy()
+
     def connect_self_to_nb(self):
         self.notebook.interface_module = self
 
     def open_config(self, file):
         print(file)
+
+    @staticmethod
+    def valid_ipv4(address):
+        try:
+            socket.inet_pton(socket.AF_INET, address)
+        except AttributeError:
+            try:
+                socket.inet_aton(address)
+            except socket.error:
+                return False
+            return address.count('.') == 3
+        except socket.error:
+            return False
+        return True
+
+    @staticmethod
+    def valid_ipv6(address):
+        try:
+            socket.inet_pton(socket.AF_INET6, address)
+        except socket.error:
+            return False
+        return True
