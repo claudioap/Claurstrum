@@ -5,7 +5,8 @@
             "en_introduction",
             "en_install",
             "en_webserver",
-            "en_sshserver"
+            "en_sshserver",
+            "en_users"
          ],
          "items":[
             [
@@ -25,6 +26,9 @@
             [
                "OpenSSH Server Info",
                "Server Settings"
+            ],
+            [
+               "Users"
             ]
          ],
          "language":"English",
@@ -32,7 +36,8 @@
             "Introduction",
             "Install",
             "Web Server Setup",
-            "OpenSSH Server Setup"
+            "OpenSSH Server Setup",
+            "System Users"
          ]
       }
    ]
