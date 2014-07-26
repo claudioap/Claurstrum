@@ -26,7 +26,8 @@ class InterfaceModule(Gtk.Box):
         self.mem = None
         self.loaded_config = None
         self.interface = {
-            'info': {}, 'setup': {}, 'ssl': {}, 'vhosts_container': None,
+            'info': {}, 'setup': {}, 'ssl_container': None,
+            'ssl_list': None, 'ssl': [], 'vhosts_container': None,
             'vhosts_list': None, 'vhosts': []}
         self.ui = self.build_ui()
 
@@ -295,10 +296,70 @@ class InterfaceModule(Gtk.Box):
 
         return box
 
-    @staticmethod
-    def ui_ssl_tab():
-        box = Gtk.Box()
-        return box
+    def ui_ssl_tab(self):
+        self.interface['ssl_container'] = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        return self.interface['ssl_container']
+
+    def ssl_profiles_load(self):
+        if self.interface['ssl_list'] is not None:
+            self.interface['ssl_container'].remove(
+                self.interface['ssl_list'])
+        self.interface['ssl_list'] = Gtk.ListBox()
+        self.interface['ssl_list'].set_selection_mode(
+            Gtk.SelectionMode.NONE)
+        count = 0
+        ssl_profiles = self.loaded_config[1]
+        for profile in ssl_profiles:
+            print(profile)
+            row = Gtk.ListBoxRow()
+            expander = Gtk.Expander.new_with_mnemonic(profile['profile'])
+            row.add(expander)
+            grid = Gtk.Grid()
+            grid.set_margin_left(50)
+            grid.set_margin_right(20)
+            grid.set_column_spacing(75)
+            grid.set_row_spacing(1)
+
+            self.interface['ssl'].append({})
+
+            hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+            hbox.set_halign(Gtk.Align.END)
+            label = Gtk.Label("Profile name:")
+            hbox.pack_start(label, True, False, 0)
+            self.interface['ssl'][count]['name'] = Gtk.Entry()
+            self.interface['ssl'][count]['name'].\
+                set_text(profile['profile'])
+            hbox.pack_start(
+                self.interface['ssl'][count]['name'], True, False, 0)
+            grid.attach(hbox, 0, 0, 1, 1)
+
+            hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+            hbox.set_halign(Gtk.Align.END)
+            label = Gtk.Label("SSL Cert:")
+            hbox.pack_start(label, True, False, 0)
+            self.interface['ssl'][count]['cert'] = Gtk.FileChooserButton()
+            hbox.pack_start(
+                self.interface['ssl'][count]['cert'], True, False, 0)
+            grid.attach(hbox, 1, 0, 1, 1)
+
+            hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+            hbox.set_halign(Gtk.Align.END)
+            label = Gtk.Label("SSL Key:")
+            hbox.pack_start(label, True, False, 0)
+            self.interface['ssl'][count]['key'] = Gtk.FileChooserButton()
+            hbox.pack_start(
+                self.interface['ssl'][count]['key'], True, False, 0)
+            grid.attach(hbox, 1, 1, 1, 1)
+
+            expander.add(grid)
+            self.interface['ssl_list'].add(row)
+            count += 1
+        self.interface['ssl_list'].set_margin_left(1)
+        self.interface['ssl_container'].\
+            pack_start(self.interface['ssl_list'], True, True, 0)
+        write_button = Gtk.Button(label="Write")
+        self.interface['ssl_container'].pack_start(write_button, False, True, 0)
+        self.interface['ssl_container'].show_all()
 
     def ui_vhost_tab(self):
         self.interface['vhosts_container'] = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -315,7 +376,6 @@ class InterfaceModule(Gtk.Box):
         count = 0
         hosts = self.loaded_config[0]
         for host in hosts:
-            print(host)
             row = Gtk.ListBoxRow()
             expander = Gtk.Expander.new_with_mnemonic(host[0]['hostname'])
             row.add(expander)
@@ -855,27 +915,27 @@ class InterfaceModule(Gtk.Box):
                 valid_profile = True
                 if profile['profile'] is None or profile['profile'] == '':
                     valid_profile = False
-                if not os.path.exists(profile['cert']):
-                    valid_profile = False
-                if not os.path.exists(profile['key']):
+                if not (os.path.exists(profile['cert']) and
+                        os.path.exists(profile['key'])):
                     valid_profile = False
                 if valid_profile:
                     valid_ssl_profiles.append(profile)
         #------------------- Relate SSL to Hosts -------------------------------
-        count = 0
+        '''count = 0
         for host in valid_hosts:
             if host[1] is True:
                 host_cert = host[0]['ssl_profile']
                 match = False
                 for profile in valid_ssl_profiles:
-                    if profile["Profile"] == host_cert:
+                    if profile["profile"] == host_cert:
                         match = True
                 if match:
                     valid_hosts.pop(count)
                     count -= 1
-            count += 1
+            count += 1'''
         self.loaded_config = [valid_hosts, valid_ssl_profiles]
-        self.vhosts_load();
+        self.ssl_profiles_load()
+        self.vhosts_load()
 
     def apply_setup(self, *_):
         pass
