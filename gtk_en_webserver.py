@@ -310,7 +310,6 @@ class InterfaceModule(Gtk.Box):
         count = 0
         ssl_profiles = self.loaded_config[1]
         for profile in ssl_profiles:
-            print(profile)
             row = Gtk.ListBoxRow()
             expander = Gtk.Expander.new_with_mnemonic(profile['profile'])
             row.add(expander)

@@ -16,11 +16,12 @@ class InterfaceModule(Gtk.Box):
         self.restart_button = Gtk.Button("Restart")
         self.stop_button = Gtk.Button("Stop")
         self.status_button = Gtk.Button("Status")
-        self.ui = self.build_ui()
         self.encoded_pid = b''
         self.pid = None
         self.cpu = None
         self.mem = None
+        self.settings_interface = {'container': None, 'holder': None}
+        self.ui = self.build_ui()
 
     def build_ui(self):
         ui = [
@@ -78,10 +79,142 @@ class InterfaceModule(Gtk.Box):
 
         return box
 
-    @staticmethod
-    def ui_settings():
-        box = Gtk.Box()
-        return box
+    def ui_settings(self):
+        self.settings_interface['container'] = Gtk.Box()
+        if self.settings_interface['holder'] is not None:
+            self.settings_interface['container'].remove(
+                self.settings_interface['holder'])
+        self.settings_interface['holder'] = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL)
+        grid = Gtk.Grid()
+        grid.set_margin_top(20)
+        grid.set_margin_left(20)
+        grid.set_margin_right(20)
+        grid.set_column_spacing(50)
+        grid.set_row_spacing(10)
+
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        hbox.set_halign(Gtk.Align.END)
+        label = Gtk.Label("IPV4:")
+        hbox.pack_start(label, True, False, 0)
+        self.settings_interface['ipv4'] = Gtk.Entry()
+        hbox.pack_start(self.settings_interface['ipv4'], True, False, 0)
+        grid.attach(hbox, 0, 0, 1, 1)
+
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        hbox.set_halign(Gtk.Align.END)
+        label = Gtk.Label("IPV6:")
+        hbox.pack_start(label, True, False, 0)
+        self.settings_interface['ipv6'] = Gtk.Entry()
+        hbox.pack_start(self.settings_interface['ipv6'], True, False, 0)
+        grid.attach(hbox, 1, 0, 1, 1)
+
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        hbox.set_halign(Gtk.Align.END)
+        label = Gtk.Label("Port:")
+        hbox.pack_start(label, True, False, 0)
+        self.settings_interface['port'] = Gtk.Entry()
+        self.settings_interface['port'].set_width_chars(5)
+        self.settings_interface['port'].set_max_width_chars(5)
+        hbox.pack_start(self.settings_interface['port'], True, False, 0)
+        grid.attach(hbox, 2, 0, 1, 1)
+
+        #----------------------------------------------------------------------
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        hbox.set_halign(Gtk.Align.END)
+        label = Gtk.Label("Login Timeout:")
+        hbox.pack_start(label, True, False, 0)
+        self.settings_interface['timeout'] = Gtk.SpinButton.new_with_range(0, 100, 1)
+        hbox.pack_start(self.settings_interface['timeout'], True, False, 0)
+        grid.attach(hbox, 0, 1, 1, 1)
+
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        hbox.set_halign(Gtk.Align.END)
+        label = Gtk.Label("Max. Tries:")
+        hbox.pack_start(label, True, False, 0)
+        self.settings_interface['tries'] = Gtk.SpinButton.new_with_range(0, 100, 1)
+        hbox.pack_start(self.settings_interface['tries'], True, False, 0)
+        grid.attach(hbox, 1, 1, 1, 1)
+
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        hbox.set_halign(Gtk.Align.END)
+        label = Gtk.Label("Sessions:")
+        hbox.pack_start(label, True, False, 0)
+        self.settings_interface['sessions'] = Gtk.SpinButton.new_with_range(0, 10, 1)
+        hbox.pack_start(self.settings_interface['sessions'], True, False, 0)
+        grid.attach(hbox, 2, 1, 1, 1)
+
+        #----------------------------------------------------------------------
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        hbox.set_halign(Gtk.Align.END)
+        label = Gtk.Label("Password auth:")
+        hbox.pack_start(label, True, False, 0)
+        self.settings_interface['password'] = Gtk.Switch(active=True)
+        hbox.pack_start(self.settings_interface['password'], True, False, 0)
+        grid.attach(hbox, 0, 2, 1, 1)
+
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        hbox.set_halign(Gtk.Align.END)
+        label = Gtk.Label("Host Auth:")
+        hbox.pack_start(label, True, False, 0)
+        self.settings_interface['host_auth'] = Gtk.Switch()
+        hbox.pack_start(self.settings_interface['host_auth'], True, False, 0)
+        grid.attach(hbox, 1, 2, 1, 1)
+
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        hbox.set_halign(Gtk.Align.END)
+        label = Gtk.Label("Root Login:")
+        hbox.pack_start(label, True, False, 0)
+        self.settings_interface['root_login'] = Gtk.Switch()
+        hbox.pack_start(self.settings_interface['root_login'], True, False, 0)
+        grid.attach(hbox, 2, 2, 1, 1)
+
+        #----------------------------------------------------------------------
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        hbox.set_halign(Gtk.Align.END)
+        label = Gtk.Label("TCP Forward:")
+        hbox.pack_start(label, True, False, 0)
+        self.settings_interface['tcp'] = Gtk.Switch()
+        hbox.pack_start(self.settings_interface['tcp'], True, False, 0)
+        grid.attach(hbox, 0, 3, 1, 1)
+
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        hbox.set_halign(Gtk.Align.END)
+        label = Gtk.Label("X11 Forward:")
+        hbox.pack_start(label, True, False, 0)
+        self.settings_interface['x11'] = Gtk.Switch()
+        hbox.pack_start(self.settings_interface['x11'], True, False, 0)
+        grid.attach(hbox, 1, 3, 1, 1)
+        #----------------------------------------------------------------------
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        hbox.set_halign(Gtk.Align.END)
+        label = Gtk.Label("Message:")
+        hbox.pack_start(label, True, False, 0)
+        self.settings_interface['message'] = Gtk.Entry()
+        hbox.pack_start(self.settings_interface['message'], True, False, 0)
+        grid.attach(hbox, 0, 4, 1, 1)
+
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        hbox.set_halign(Gtk.Align.END)
+        label = Gtk.Label("Log Location:")
+        hbox.pack_start(label, True, False, 0)
+        self.settings_interface['log'] = Gtk.FileChooserButton()
+        hbox.pack_start(self.settings_interface['log'], True, False, 0)
+        grid.attach(hbox, 2, 4, 1, 1)
+
+        self.settings_interface['holder'].pack_start(grid, True, True, 0)
+
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        Gtk.StyleContext.add_class(hbox.get_style_context(), "linked")
+        write_button = Gtk.Button(label="Write")
+        apply_button = Gtk.Button(label="Apply written config")
+        hbox.pack_start(write_button, True, True, 0)
+        hbox.pack_start(apply_button, True, True, 0)
+        self.settings_interface['holder'].pack_start(hbox, False, True, 0)
+
+        self.settings_interface['container'].pack_start(
+            self.settings_interface['holder'], True, True, 0)
+        return self.settings_interface['container']
 
     def refresh(self, *_):
         if os.path.isfile("/usr/bin/sshd"):
