@@ -477,24 +477,50 @@ class InterfaceModule(Gtk.Box):
             dialog.destroy()
 
         if valid:
-            file = open(self.config_file, 'w')
+            file = open(self.config_file, 'w', encoding="utf-8")
             file.write(json.dumps(self.config))
 
     def apply_config(self, *_):
         if self.config_file is not None:
-            pass
+            config_file = open(self.config_file, 'r', encoding="utf-8")
+            config = json.load(config_file)
+            if self.valid_config(config):
+                self.gen_server_config(config)
+
         else:
             dialog = Gtk.MessageDialog(transient_for=None,
-                                   modal=True,
-                                   destroy_with_parent=True,
-                                   message_type=Gtk.MessageType.INFO,
-                                   buttons=Gtk.ButtonsType.CLOSE,
-                                   text="No saved config:")
+                                       modal=True,
+                                       destroy_with_parent=True,
+                                       message_type=Gtk.MessageType.INFO,
+                                       buttons=Gtk.ButtonsType.CLOSE,
+                                       text="No saved config:")
             dialog.format_secondary_text(
                 "You need to write a config file before you can apply " +
                 "its changes!")
             dialog.run()
             dialog.destroy()
+
+    @staticmethod
+    def valid_config(config):
+        if 'ip' in config and 'port' in config and 'timeout' in config and\
+            'sessions' in config and 'log' in config and 'password_auth' in\
+            config and 'host_auth' in config and 'tries' in config and\
+            'x11' in config and 'message' in config and 'tcp' in config and\
+                'root' in config:
+            for ip in config['ip']:
+                if InterfaceModule.valid_ipv4(ip) ==\
+                        InterfaceModule.valid_ipv6(ip):
+                    return False
+
+            if not (0 < config['port'] < 65536):
+                return False
+
+            return True
+        else:
+            return False
+
+    def gen_server_config(self, config):
+        pass
 
     def connect_self_to_nb(self):
         self.notebook.interface_module = self
