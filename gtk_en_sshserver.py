@@ -5,6 +5,7 @@ import socket
 import subprocess
 import json
 
+from jinja2 import Environment, FileSystemLoader
 from gi.repository import Gtk, Gdk, GLib
 
 
@@ -447,11 +448,11 @@ class InterfaceModule(Gtk.Box):
         if log_file is None:
             valid = False
             dialog = Gtk.MessageDialog(transient_for=None,
-                                   modal=True,
-                                   destroy_with_parent=True,
-                                   message_type=Gtk.MessageType.INFO,
-                                   buttons=Gtk.ButtonsType.CLOSE,
-                                   text="Invalid port:")
+                                       modal=True,
+                                       destroy_with_parent=True,
+                                       message_type=Gtk.MessageType.INFO,
+                                       buttons=Gtk.ButtonsType.CLOSE,
+                                       text="Invalid port:")
             dialog.format_secondary_text(
                 "No log file selected")
             dialog.run()
@@ -520,7 +521,55 @@ class InterfaceModule(Gtk.Box):
             return False
 
     def gen_server_config(self, config):
-        pass
+        template_config = {'port': config['port']}
+        if len(config['ip']) == 2:
+            template_config['ip1'] = config['ip'][0]
+            template_config['disableip2'] = ''
+            template_config['ip2'] = config['ip'][1]
+        else:
+            template_config['ip1'] = config['ip'][0]
+            template_config['disableip2'] = '#'
+            template_config['ip2'] = "disabled"
+
+        template_config['login_timeout'] = int(config['timeout'])
+        if config['root']:
+            template_config['root_login'] = 'yes'
+        else:
+            template_config['root_login'] = 'no'
+        template_config['auth_tries'] = int(config['tries'])
+        template_config['sessions'] = int(config['sessions'])
+        if config['password_auth']:
+            template_config['password_auth'] = "yes"
+            template_config['password_auth_deps'] = "no"
+        else:
+            template_config['password_auth'] = "no"
+            template_config['password_auth_deps'] = "yes"
+        if config['host_auth']:
+            template_config['host_auth'] = "yes"
+        else:
+            template_config['host_auth'] = "no"
+        if config['tcp']:
+            template_config['tcp'] = "yes"
+        else:
+            template_config['tcp'] = "no"
+        if config['x11']:
+            template_config['x11'] = "yes"
+        else:
+            template_config['x11'] = "no"
+        if config['message'] == "" or config['message'] is None:
+            template_config['message_enabled'] = "no"
+            template_config['message'] = ""
+        else:
+            template_config['message_enabled'] = "yes"
+            template_config['message'] = config['message']
+
+        template_loader = FileSystemLoader(searchpath="./template/")
+        template_environment = Environment(loader=template_loader)
+        template = template_environment.get_template('sshd.conf.template')
+        rendered_template = template.render(template_config)
+        output_file = open('/tmp/ssdh.conf', 'w', encoding="utf-8")
+        output_file.write(rendered_template)
+
 
     def connect_self_to_nb(self):
         self.notebook.interface_module = self
